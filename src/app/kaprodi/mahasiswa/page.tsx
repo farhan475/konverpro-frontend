@@ -6,11 +6,11 @@ import {
   MagnifyingGlass,
   Funnel,
   DownloadSimple,
-  Inbox,
   IdentificationBadge
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Inbox } from 'lucide-react';
 
 interface Mahasiswa {
   id: string;

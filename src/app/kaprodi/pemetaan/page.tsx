@@ -8,11 +8,10 @@ import {
   Trash,
   PencilSimple,
   Books,
-  Spinner,
   ArrowRight,
   Info
 } from '@phosphor-icons/react';
-import { cn } from '@/lib/utils';
+import { Link } from 'lucide-react';
 
 interface MataKuliah {
   id: number;

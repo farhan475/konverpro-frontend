@@ -11,7 +11,8 @@ import {
   Buildings,
   Stack,
   Clock,
-  Sparkle
+  Sparkle,
+  CaretRight
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -160,12 +161,12 @@ export default function KaprodiDashboard() {
                     {data?.recent_pendaftar.map((item, idx) => (
                         <div key={idx} className="flex gap-3 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
                             <div className={cn(
-                                \"w-2 h-2 rounded-full mt-1.5 shrink-0\",
+                                "w-2 h-2 rounded-full mt-1.5 shrink-0",
                                 item.status === 'Approved' ? 'bg-green-500' : 'bg-amber-500'
                             )}></div>
                             <div>
-                                <p className=\"text-xs font-black text-slate-700 uppercase\">{item.nama_lengkap}</p>
-                                <p className=\"text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight\">{item.status} • {new Date(item.created_at).toLocaleDateString()}</p>
+                                <p className="text-xs font-black text-slate-700 uppercase">{item.nama_lengkap}</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">{item.status} • {new Date(item.created_at).toLocaleDateString()}</p>
                             </div>
                         </div>
                     ))}
