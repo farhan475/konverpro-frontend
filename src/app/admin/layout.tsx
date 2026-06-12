@@ -3,32 +3,26 @@
 import React from 'react';
 import { 
   SquaresFour, 
-  UsersThree, 
-  Buildings, 
-  Gear, 
-  Note, 
-  BookOpen,
-  ChartBar
+  UserPlus, 
+  Files, 
+  Table
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { useAuthGuard } from '@/lib/hooks/useAuthGuard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
-export default function SuperadminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const isAuthorized = useAuthGuard(['superadmin']);
+  const isAuthorized = useAuthGuard(['admin']);
 
   const navItems = [
-    { label: 'Dashboard', href: '/superadmin', icon: SquaresFour },
-    { label: 'Manajemen User', href: '/superadmin/users', icon: UsersThree },
-    { label: 'Data Prodi', href: '/superadmin/prodi', icon: Buildings },
-    { label: 'Kamus Sinonim', href: '/superadmin/kamus-sinonim', icon: BookOpen },
-    { label: 'Konfigurasi', href: '/superadmin/config', icon: Gear },
-    { label: 'Audit Log', href: '/superadmin/audit', icon: Note },
-    { label: 'Laporan', href: '/superadmin/laporan', icon: ChartBar },
+    { label: 'Dashboard', href: '/admin', icon: SquaresFour },
+    { label: 'Upload Excel', href: '/admin/pendaftar/upload', icon: UserPlus },
+    { label: 'Data Pendaftar', href: '/admin/pendaftar', icon: Files },
+    { label: 'Template', href: '/admin/template/download', icon: Table },
   ];
 
   if (!isAuthorized) {
@@ -37,11 +31,6 @@ export default function SuperadminLayout({
         <div className="h-16 bg-blue-900 w-full animate-pulse" />
         <div className="flex-1 p-8">
           <Skeleton className="h-48 w-full rounded-3xl mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32 rounded-2xl" />
-            ))}
-          </div>
           <Skeleton className="h-96 w-full rounded-2xl" />
         </div>
       </div>
@@ -50,7 +39,7 @@ export default function SuperadminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopNav role="superadmin" navItems={navItems} />
+      <TopNav role="admin" navItems={navItems} />
       <main className="pt-24 pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}

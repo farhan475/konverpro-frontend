@@ -1,36 +1,68 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
+import { Role } from '@/lib/types';
 
-export const useAuthGuard = (allowedRoles: string[]) => {
+export const useAuthGuard = (allowedRoles: Role[]) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const toastShown = useRef(false);
+
+  // Memoize allowedRoles check to avoid unnecessary re-renders
+  const rolesString = JSON.stringify(allowedRoles);
 
   useEffect(() => {
-    // Check role from session storage or cookie
     const userStr = localStorage.getItem('konverpro_user');
-    if (!userStr) {
+    const token = localStorage.getItem('konverpro_token');
+
+    if (!userStr || !token || userStr === 'undefined') {
+      if (pathname !== '/' && !toastShown.current) {
         toast.error('Sesi berakhir. Silakan login kembali.');
+        toastShown.current = true;
         router.push('/');
-        return;
+      }
+      return;
     }
 
-    const user = JSON.parse(userStr);
-    const role = user.role;
+    try {
+      const user = JSON.parse(userStr);
+      
+      if (!user || !user.role) {
+        throw new Error('Invalid user data');
+      }
 
-    if (!allowedRoles.includes(role)) {
-        toast.error('Anda tidak memiliki akses ke halaman ini.');
+      const role = user.role as Role;
+
+      if (!allowedRoles.includes(role)) {
+        if (!toastShown.current) {
+          toast.error('Anda tidak memiliki akses ke halaman ini.');
+          toastShown.current = true;
+        }
         
-        // Redirect to correct dashboard based on real role
-        const target = role.replace('_', '-');
-        router.push(`/${target}`);
-    } else {
+        // Use a small delay to avoid redirect loops during render
+        const timeout = setTimeout(() => {
+          const target = role.replace('_', '-');
+          router.push(`/${target}`);
+        }, 100);
+        
+        return () => clearTimeout(timeout);
+      } else {
         setIsAuthorized(true);
+      }
+    } catch (error) {
+      console.error('Auth Guard Error:', error);
+      localStorage.removeItem('konverpro_user');
+      localStorage.removeItem('konverpro_token');
+      if (pathname !== '/' && !toastShown.current) {
+        toast.error('Terjadi kesalahan sesi. Silakan login kembali.');
+        toastShown.current = true;
+        router.push('/');
+      }
     }
-  }, [router, pathname, allowedRoles]);
+  }, [router, pathname, rolesString]);
 
   return isAuthorized;
 };

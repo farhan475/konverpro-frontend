@@ -1,38 +1,83 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #1e293b;
-  --primary: #094E8B;
-  --primary-foreground: #ffffff;
-  --secondary: #FDD824;
-  --secondary-foreground: #031f37;
+  /* Primary — Biru institusi */
+  --blue-900: #031f37;
+  --blue-700: #094E8B;
+  --blue-100: #dbeafe;
+  --blue-50:  #eff6ff;
+
+  /* Accent — Kuning energik */
+  --yellow:   #FDD824;
+  --yellow-bg:#fffbeb;
+
+  /* Neutral — Putih & Abu */
+  --white:    #ffffff;
+  --gray-50:  #F8FAFC;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-400: #94a3b8;
+  --gray-600: #475569;
+  --gray-900: #0f172a;
+
+  /* Status */
+  --green:    #16a34a;
+  --red:      #dc2626;
+  --orange:   #ea580c;
+  --purple:   #7c3aed;
+
+  /* Tailwind mapping variables */
+  --background: var(--gray-50);
+  --foreground: var(--gray-900);
+  --primary: var(--blue-900);
+  --primary-foreground: var(--white);
+  --secondary: var(--yellow);
+  --secondary-foreground: var(--blue-900);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
+  --color-blue-900: var(--blue-900);
+  --color-blue-700: var(--blue-700);
+  --color-blue-100: var(--blue-100);
+  --color-blue-50: var(--blue-50);
+  --color-yellow: var(--yellow);
+  --color-yellow-bg: var(--yellow-bg);
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-400: var(--gray-400);
+  --color-gray-600: var(--gray-600);
+  --color-gray-900: var(--gray-900);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-orange: var(--orange);
+  --color-purple: var(--purple);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.akd-card {
-  @apply bg-white border border-slate-200 shadow-sm rounded-2xl;
+@layer components {
+  .card {
+    @apply bg-white border border-gray-200 rounded-2xl p-5 shadow-sm transition-all duration-200;
+  }
+  .card:hover {
+    @apply shadow-lg -translate-y-0.5;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-blue-700 disabled:bg-gray-300;
+  }
+  
+  .input-field {
+    @apply w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-blue-700 focus:bg-white focus:ring-4 focus:ring-blue-700/10 transition-all;
+  }
 }
