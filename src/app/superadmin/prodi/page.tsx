@@ -40,8 +40,8 @@ export default function ProdiManagementPage() {
     setLoading(true);
     try {
       const [prodiRes, userRes] = await Promise.all([
-        api.get<ApiResponse<Prodi[]>>('/api/superadmin/prodi'),
-        api.get<ApiResponse<UserType[]>>('/api/superadmin/users') // We might want a specific endpoint for kaprodis later
+        api.get<ApiResponse<Prodi[]>>('/api/referensi/prodi'),
+        api.get<ApiResponse<UserType[]>>('/api/superadmin/users') 
       ]);
       
       if (prodiRes.data.success) {

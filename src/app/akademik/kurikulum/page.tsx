@@ -56,7 +56,7 @@ export default function KurikulumManagementPage() {
     try {
       const [mkRes, prodiRes] = await Promise.all([
         api.get<ApiResponse<KurikulumMk[]>>('/api/akademik/kurikulum'),
-        api.get<ApiResponse<Prodi[]>>('/api/superadmin/prodi') // Akademik can see all prodis
+        api.get<ApiResponse<Prodi[]>>('/api/referensi/prodi') 
       ]);
       
       if (mkRes.data.success) setItems(mkRes.data.data);
