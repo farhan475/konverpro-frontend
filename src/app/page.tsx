@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   WarningCircle,
 } from "@phosphor-icons/react";
-import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -22,16 +21,18 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if already logged in
     const userStr = localStorage.getItem("konverpro_user");
-    if (userStr && userStr !== "undefined") {
+    const token = localStorage.getItem("konverpro_token");
+
+    if (userStr && userStr !== "undefined" && token) {
       try {
         const user = JSON.parse(userStr);
         if (user && user.role) {
           router.push(`/${user.role}`);
         }
-      } catch (e) {
-        localStorage.clear();
+      } catch {
+        localStorage.removeItem("konverpro_token");
+        localStorage.removeItem("konverpro_user");
       }
     }
   }, [router]);
@@ -45,11 +46,23 @@ export default function LoginPage() {
       const { data } = await api.post("/api/auth/login", { email, password });
 
       if (data.success) {
+<<<<<<< HEAD
         localStorage.setItem("konverpro_token", data.data.access_token);
         localStorage.setItem("konverpro_user", JSON.stringify(data.data.user));
+=======
+        const token = data.data.access_token || data.data.token;
+        const user = data.data.user;
+>>>>>>> cfe906bc0f640ad67b28df30009b2f3ab04c3b59
 
-        toast.success(`Selamat datang, ${data.data.user.nama_lengkap}!`);
-        router.push(`/${data.data.user.role}`);
+        if (!token || !user?.role) {
+          throw new Error("Respons login dari server tidak lengkap.");
+        }
+
+        localStorage.setItem("konverpro_token", token);
+        localStorage.setItem("konverpro_user", JSON.stringify(user));
+
+        toast.success(`Selamat datang, ${user.nama_lengkap}!`);
+        router.push(`/${user.role}`);
       } else {
         setError(
           data.message ||
@@ -59,7 +72,8 @@ export default function LoginPage() {
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-          "Gagal menghubungi server. Pastikan koneksi internet aktif.",
+          err.message ||
+          "Gagal menghubungi server. Pastikan backend Laravel aktif.",
       );
     } finally {
       setLoading(false);
@@ -69,9 +83,7 @@ export default function LoginPage() {
   return (
     <div className="bg-blue-900 font-sans min-h-screen flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-[2rem] shadow-2xl overflow-hidden min-h-[550px]">
-        {/* Left Side: Branding */}
-        <div className="bg-blue-900 p-12 text-white flex flex-col justify-between relative overflow-hidden hidden md:flex">
-          {/* Decorative circles */}
+        <div className="bg-blue-900 p-12 text-white flex-col justify-between relative overflow-hidden hidden md:flex">
           <div className="absolute top-0 right-0 w-72 h-72 bg-yellow rounded-full blur-[100px] opacity-10 -mr-24 -mt-24"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-700 rounded-full blur-[100px] opacity-10 -ml-12 -mb-12"></div>
 
@@ -98,7 +110,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Side: Login Form */}
         <div className="p-10 md:p-14 flex flex-col justify-center bg-white">
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
