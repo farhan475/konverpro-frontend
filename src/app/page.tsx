@@ -42,10 +42,10 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { data } = await api.post("/api/login", { email, password });
+      const { data } = await api.post("/api/auth/login", { email, password });
 
       if (data.success) {
-        localStorage.setItem("konverpro_token", data.data.token);
+        localStorage.setItem("konverpro_token", data.data.access_token);
         localStorage.setItem("konverpro_user", JSON.stringify(data.data.user));
 
         toast.success(`Selamat datang, ${data.data.user.nama_lengkap}!`);

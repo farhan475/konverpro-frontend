@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   UserPlus, 
   Files, 
@@ -12,16 +12,54 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import api from "@/lib/api";
+import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
-  const stats = [
-    { label: "Input Hari Ini", value: "8", icon: UserPlus, color: "text-blue-900", bg: "bg-blue-50" },
-    { label: "Total Pendaftar", value: "42", icon: Files, color: "text-blue-700", bg: "bg-blue-50" },
-    { label: "Menunggu Review", value: "15", icon: Clock, color: "text-orange", bg: "bg-orange-50" },
-    { label: "Telah Disetujui", value: "24", icon: CheckCircle, color: "text-green", bg: "bg-green-50" },
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboard = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get<ApiResponse<any>>('/api/admin/dashboard');
+      if (data.success) {
+        setData(data.data);
+      }
+    } catch (error) {
+      toast.error('Gagal mengambil data dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const statsList = [
+    { label: "Total Input", value: data?.stats?.total_input || 0, icon: UserPlus, color: "text-blue-900", bg: "bg-blue-50" },
+    { label: "Sedang Proses", value: data?.stats?.pending || 0, icon: Clock, color: "text-orange", bg: "bg-orange-50" },
+    { label: "Telah Disetujui", value: data?.stats?.approved || 0, icon: CheckCircle, color: "text-green", bg: "bg-green-50" },
+    { label: "Perlu Revisi", value: data?.stats?.revisi || 0, icon: Files, color: "text-red", bg: "bg-red-50" },
   ];
+
+  const getStatusVariant = (status: StatusPendaftar) => {
+    switch (status) {
+      case 'Approved': return 'success';
+      case 'Rejected': return 'danger';
+      case 'Revisi': return 'warning';
+      case 'AI Processing': return 'ai';
+      case 'Pending Kaprodi': return 'info';
+      default: return 'neutral';
+    }
+  };
+
+  if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
   return (
     <div>
@@ -38,7 +76,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, i) => (
+        {statsList.map((stat, i) => (
           <Card key={i} className="flex items-center gap-5">
             <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0", stat.bg)}>
               <stat.icon size={28} weight="bold" className={stat.color} />
@@ -77,27 +115,33 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {[1, 2, 3, 4, 5].map((item) => (
-                    <tr key={item} className="group hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-2">
-                        <p className="font-bold text-gray-900">Budi Santoso</p>
-                        <p className="text-xs text-gray-400">NIM Asal: 12345678</p>
-                      </td>
-                      <td className="py-4 px-2">
-                        <p className="font-medium text-gray-600">PJJ Informatika</p>
-                      </td>
-                      <td className="py-4 px-2">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
-                          Baru
-                        </span>
-                      </td>
-                      <td className="py-4 px-2 text-right">
-                        <button className="text-gray-400 hover:text-blue-900 transition-colors">
-                          <ArrowRight size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {data?.recent_pendaftar?.length === 0 ? (
+                    <tr><td colSpan={4} className="py-12 text-center text-gray-400 italic">Belum ada data input.</td></tr>
+                  ) : (
+                    data?.recent_pendaftar?.map((p: Pendaftar) => (
+                      <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-2">
+                          <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
+                          <p className="text-xs text-gray-400">NIM Asal: {p.nim_asal || '-'}</p>
+                        </td>
+                        <td className="py-4 px-2">
+                          <p className="font-medium text-gray-600">{p.prodi?.nama_prodi || '-'}</p>
+                        </td>
+                        <td className="py-4 px-2">
+                          <Badge variant={getStatusVariant(p.status)}>
+                            {p.status}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-2 text-right">
+                          <Link href={`/admin/pendaftar/${p.id}`}>
+                            <button className="text-gray-400 hover:text-blue-900 transition-colors">
+                              <ArrowRight size={20} />
+                            </button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -122,11 +166,11 @@ export default function AdminDashboard() {
                 <p className="text-sm text-blue-900/70 font-medium">Unggah file Excel dan lampirkan PDF asli (opsional).</p>
               </li>
             </ul>
-            <Link href="/admin/template/download" className="mt-8 block">
+            <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/template/download`} className="mt-8 block">
               <Button variant="secondary" className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10">
                 Unduh Template Excel
               </Button>
-            </Link>
+            </a>
           </Card>
 
           <Card className="bg-white">

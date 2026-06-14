@@ -100,7 +100,7 @@ export default function DetailValidasiPage() {
     if (!catatan) return toast.error('Catatan revisi wajib diisi');
     setIsRevising(true);
     try {
-      const { data } = await api.post(`/api/kaprodi/validasi/${id}/revisi`, { catatan_revisi: catatan });
+      const { data } = await api.post(`/api/kaprodi/validasi/${id}/revisi`, { catatan: catatan });
       if (data.success) {
         toast.success('Permohonan dikembalikan untuk revisi');
         router.push('/kaprodi/validasi');
@@ -116,9 +116,9 @@ export default function DetailValidasiPage() {
     if (!catatan) return toast.error('Alasan penolakan wajib diisi');
     setIsRejecting(true);
     try {
-      const { data } = await api.post(`/api/kaprodi/validasi/${id}/reject`, { alasan_reject: catatan });
+      const { data } = await api.post(`/api/kaprodi/validasi/${id}/reject`, { alasan: catatan });
       if (data.success) {
-        toast.error('Permohonan telah ditolak');
+        toast.success('Permohonan telah ditolak');
         router.push('/kaprodi/validasi');
       }
     } catch (error) {

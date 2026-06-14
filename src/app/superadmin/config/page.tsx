@@ -32,13 +32,9 @@ export default function ConfigPage() {
   const fetchConfigs = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<ConfigItem[]>>('/api/superadmin/config');
+      const { data } = await api.get<ApiResponse<Record<string, string>>>('/api/superadmin/config');
       if (data.success) {
-        const configMap = data.data.reduce((acc, curr) => {
-          acc[curr.setting_key] = curr.setting_value || '';
-          return acc;
-        }, {} as Record<string, string>);
-        setConfigs(configMap);
+        setConfigs(data.data);
       }
     } catch (error) {
       toast.error('Gagal mengambil konfigurasi');
@@ -58,7 +54,7 @@ export default function ConfigPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { data } = await api.put('/api/superadmin/config', { configs });
+      const { data } = await api.put('/api/superadmin/config', { settings: configs });
       if (data.success) {
         toast.success('Konfigurasi berhasil disimpan');
       }

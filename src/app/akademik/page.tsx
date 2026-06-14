@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ListBullets, 
   Books, 
@@ -12,16 +12,43 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import api from "@/lib/api";
+import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function AkademikDashboard() {
-  const stats = [
-    { label: "Antrean Baru", value: "12", icon: ListBullets, color: "text-blue-900", bg: "bg-blue-50" },
-    { label: "Sedang Diproses AI", value: "3", icon: MagicWand, color: "text-purple", bg: "bg-purple-50" },
-    { label: "Total Mata Kuliah", value: "458", icon: Books, color: "text-blue-700", bg: "bg-blue-50" },
-    { label: "Rata-rata Matching", value: "82%", icon: ChartBar, color: "text-green", bg: "bg-green-50" },
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboard = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get<ApiResponse<any>>('/api/akademik/dashboard');
+      if (data.success) {
+        setData(data.data);
+      }
+    } catch (error) {
+      toast.error('Gagal mengambil data dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const statsList = [
+    { label: "Antrean Baru", value: data?.stats?.antrean_baru || 0, icon: ListBullets, color: "text-blue-900", bg: "bg-blue-50" },
+    { label: "AI Processing", value: data?.stats?.ai_processing || 0, icon: MagicWand, color: "text-purple", bg: "bg-purple-50" },
+    { label: "Pending Kaprodi", value: data?.stats?.pending_kaprodi || 0, icon: Clock, color: "text-orange", bg: "bg-orange-50" },
+    { label: "Laju Konversi", value: "82%", icon: ChartBar, color: "text-green", bg: "bg-green-50" },
   ];
+
+  if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
   return (
     <div>
@@ -38,7 +65,7 @@ export default function AkademikDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, i) => (
+        {statsList.map((stat, i) => (
           <Card key={i} className="flex items-center gap-5">
             <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0", stat.bg)}>
               <stat.icon size={28} weight="bold" className={stat.color} />
@@ -67,30 +94,34 @@ export default function AkademikDashboard() {
             </div>
             
             <div className="space-y-4">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500">
-                      JS
+              {data?.recent_queue?.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 italic">Antrean kosong.</div>
+              ) : (
+                data?.recent_queue?.map((p: Pendaftar) => (
+                  <div key={p.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center font-bold">
+                        {p.nama_lengkap.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{p.nama_lengkap}</p>
+                        <p className="text-[11px] text-gray-500">{p.prodi?.nama_prodi || '-'} • NIM: {p.nim_asal || '-'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Jane Smith</p>
-                      <p className="text-[11px] text-gray-500">PJJ Sistem Informasi • 32 Mata Kuliah</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right hidden sm:block">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">Status</p>
+                        <p className="text-xs font-bold text-blue-900">{p.status}</p>
+                      </div>
+                      <Link href={`/akademik/antrean/${p.id}`}>
+                        <Button variant="secondary" className="px-4 py-2 text-xs">
+                          Proses
+                        </Button>
+                      </Link>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Status</p>
-                      <p className="text-xs font-bold text-blue-900">Baru</p>
-                    </div>
-                    <Link href={`/akademik/antrean/${item}`}>
-                      <Button variant="secondary" className="px-4 py-2 text-xs">
-                        Proses
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </div>
@@ -129,7 +160,7 @@ export default function AkademikDashboard() {
             </div>
 
             <p className="mt-8 text-[10px] text-blue-100/40 font-medium">
-              Data berdasarkan 500+ pemetaan terakhir yang telah disetujui Kaprodi.
+              Data berdasarkan parameter threshold yang diatur Superadmin.
             </p>
           </Card>
         </div>

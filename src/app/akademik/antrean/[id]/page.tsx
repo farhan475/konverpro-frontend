@@ -187,7 +187,7 @@ export default function DetailAntreanPage() {
               <Button 
                 variant="secondary" 
                 className="w-full justify-start text-xs font-bold bg-white"
-                onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/storage/${pendaftar.file_transkrip_excel_path}`)}
+                onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/files/excel/${pendaftar.id}`)}
               >
                 <FileXls size={18} weight="bold" className="text-green-600" /> Lihat Excel Original
               </Button>
@@ -195,9 +195,9 @@ export default function DetailAntreanPage() {
                 <Button 
                   variant="secondary" 
                   className="w-full justify-start text-xs font-bold bg-white"
-                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/storage/${pendaftar.file_transkrip_pdf_path}`)}
+                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/files/pdf/${pendaftar.id}`)}
                 >
-                  <FileXls size={18} weight="bold" className="text-red-600" /> Lihat PDF Arsip
+                  <FilePdf size={18} weight="bold" className="text-red-600" /> Lihat PDF Arsip
                 </Button>
               )}
             </div>
