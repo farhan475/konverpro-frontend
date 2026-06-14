@@ -25,13 +25,18 @@ export default function TandaTanganPage() {
   const fetchSignature = async () => {
     setLoading(true);
     try {
-      // Assuming /api/auth/me returns the user data with tanda_tangan_path
-      const { data } = await api.get('/api/auth/me');
-      if (data.success && data.data.tanda_tangan_path) {
-        setSignatureUrl(`${process.env.NEXT_PUBLIC_API_BASE_URL}/storage/${data.data.tanda_tangan_path}`);
+      const { data: userRes } = await api.get('/api/auth/me');
+      if (userRes.success && userRes.data.tanda_tangan_path) {
+        // Fetch signature as blob to include auth headers
+        const response = await api.get('/api/files/signature', { responseType: 'blob' });
+        const url = URL.createObjectURL(response.data);
+        setSignatureUrl(url);
+      } else {
+        setSignatureUrl(null);
       }
     } catch (error) {
-      toast.error('Gagal mengambil data tanda tangan');
+      // toast.error('Gagal mengambil data tanda tangan');
+      setSignatureUrl(null);
     } finally {
       setLoading(false);
     }
@@ -39,6 +44,9 @@ export default function TandaTanganPage() {
 
   useEffect(() => {
     fetchSignature();
+    return () => {
+      if (signatureUrl) URL.revokeObjectURL(signatureUrl);
+    };
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

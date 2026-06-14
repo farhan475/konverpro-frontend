@@ -8,6 +8,7 @@ import {
   Books
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuthGuard } from '@/lib/hooks/useAuthGuard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -20,9 +21,9 @@ export default function AkademikLayout({
 
   const navItems = [
     { label: 'Dashboard', href: '/akademik', icon: SquaresFour },
-    { label: 'Antrean Konversi', href: '/akademik/antrean', icon: ListBullets },
-    { label: 'Manajemen Kurikulum', href: '/akademik/kurikulum', icon: Books },
-    { label: 'Kamus Sinonim', href: '/akademik/kamus-sinonim', icon: BookOpen },
+    { label: 'Antrean', href: '/akademik/antrean', icon: ListBullets },
+    { label: 'Kurikulum', href: '/akademik/kurikulum', icon: Books },
+    { label: 'Sinonim', href: '/akademik/kamus-sinonim', icon: BookOpen },
   ];
 
   if (!isAuthorized) {
@@ -38,13 +39,14 @@ export default function AkademikLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="akademik" navItems={navItems} />
-      <main className="pt-24 pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto">
+      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>
       </main>
+      <BottomNav navItems={navItems} />
     </div>
   );
 }

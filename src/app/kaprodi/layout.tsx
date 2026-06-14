@@ -8,6 +8,7 @@ import {
   Signature
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuthGuard } from '@/lib/hooks/useAuthGuard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -20,9 +21,9 @@ export default function KaprodiLayout({
 
   const navItems = [
     { label: 'Dashboard', href: '/kaprodi', icon: SquaresFour },
-    { label: 'Validasi Konversi', href: '/kaprodi/validasi', icon: CheckSquareOffset },
-    { label: 'Laporan Prodi', href: '/kaprodi/laporan', icon: ChartBar },
-    { label: 'Tanda Tangan', href: '/kaprodi/tanda-tangan', icon: Signature },
+    { label: 'Validasi', href: '/kaprodi/validasi', icon: CheckSquareOffset },
+    { label: 'Laporan', href: '/kaprodi/laporan', icon: ChartBar },
+    { label: 'Signature', href: '/kaprodi/tanda-tangan', icon: Signature },
   ];
 
   if (!isAuthorized) {
@@ -38,13 +39,14 @@ export default function KaprodiLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="kaprodi" navItems={navItems} />
-      <main className="pt-24 pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto">
+      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>
       </main>
+      <BottomNav navItems={navItems} />
     </div>
   );
 }

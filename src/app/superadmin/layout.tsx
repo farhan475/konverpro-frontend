@@ -11,6 +11,7 @@ import {
   ChartBar
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuthGuard } from '@/lib/hooks/useAuthGuard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -23,11 +24,11 @@ export default function SuperadminLayout({
 
   const navItems = [
     { label: 'Dashboard', href: '/superadmin', icon: SquaresFour },
-    { label: 'Manajemen User', href: '/superadmin/users', icon: UsersThree },
-    { label: 'Data Prodi', href: '/superadmin/prodi', icon: Buildings },
-    { label: 'Kamus Sinonim', href: '/superadmin/kamus-sinonim', icon: BookOpen },
-    { label: 'Konfigurasi', href: '/superadmin/config', icon: Gear },
-    { label: 'Audit Log', href: '/superadmin/audit', icon: Note },
+    { label: 'Users', href: '/superadmin/users', icon: UsersThree },
+    { label: 'Prodi', href: '/superadmin/prodi', icon: Buildings },
+    { label: 'Sinonim', href: '/superadmin/kamus-sinonim', icon: BookOpen },
+    { label: 'Config', href: '/superadmin/config', icon: Gear },
+    { label: 'Audit', href: '/superadmin/audit', icon: Note },
     { label: 'Laporan', href: '/superadmin/laporan', icon: ChartBar },
   ];
 
@@ -49,13 +50,14 @@ export default function SuperadminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="superadmin" navItems={navItems} />
-      <main className="pt-24 pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto">
+      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>
       </main>
+      <BottomNav navItems={navItems} />
     </div>
   );
 }
