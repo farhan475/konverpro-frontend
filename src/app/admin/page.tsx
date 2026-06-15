@@ -13,6 +13,9 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { StatCard } from "@/components/shared/StatCard";
+import { DataTable } from "@/components/shared/DataTable";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -41,13 +44,6 @@ export default function AdminDashboard() {
     fetchDashboard();
   }, []);
 
-  const statsList = [
-    { label: "Total Input", value: data?.stats?.total_input || 0, icon: UserPlus, color: "text-blue-900", bg: "bg-blue-50" },
-    { label: "Sedang Proses", value: data?.stats?.pending || 0, icon: Clock, color: "text-orange", bg: "bg-orange-50" },
-    { label: "Telah Disetujui", value: data?.stats?.approved || 0, icon: CheckCircle, color: "text-green", bg: "bg-green-50" },
-    { label: "Perlu Revisi", value: data?.stats?.revisi || 0, icon: Files, color: "text-red", bg: "bg-red-50" },
-  ];
-
   const getStatusVariant = (status: StatusPendaftar) => {
     switch (status) {
       case 'Approved': return 'success';
@@ -60,6 +56,43 @@ export default function AdminDashboard() {
   };
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
+
+  const columns = [
+    {
+      header: 'Mahasiswa',
+      accessor: (p: Pendaftar) => (
+        <div>
+          <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
+          <p className="text-xs text-gray-400">NIM Asal: {p.nim_asal || '-'}</p>
+        </div>
+      )
+    },
+    {
+      header: 'Prodi Tujuan',
+      accessor: (p: Pendaftar) => (
+        <p className="font-medium text-gray-600">{p.prodi?.nama_prodi || '-'}</p>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: (p: Pendaftar) => (
+        <Badge variant={getStatusVariant(p.status)}>
+          {p.status}
+        </Badge>
+      )
+    },
+    {
+      header: 'Aksi',
+      className: 'text-right',
+      accessor: (p: Pendaftar) => (
+        <Link href={`/admin/pendaftar/${p.id}`}>
+          <button className="text-gray-400 hover:text-blue-900 transition-colors">
+            <ArrowRight size={20} />
+          </button>
+        </Link>
+      )
+    }
+  ];
 
   return (
     <div>
@@ -76,21 +109,30 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsList.map((stat, i) => (
-          <Card key={i} className="flex items-center gap-5">
-            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0", stat.bg)}>
-              <stat.icon size={28} weight="bold" className={stat.color} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stat.value}
-              </p>
-            </div>
-          </Card>
-        ))}
+        <StatCard 
+          label="Total Input" 
+          value={data?.stats?.total_input || 0} 
+          icon={UserPlus} 
+          variant="blue" 
+        />
+        <StatCard 
+          label="Sedang Proses" 
+          value={data?.stats?.pending || 0} 
+          icon={Clock} 
+          variant="orange" 
+        />
+        <StatCard 
+          label="Telah Disetujui" 
+          value={data?.stats?.approved || 0} 
+          icon={CheckCircle} 
+          variant="green" 
+        />
+        <StatCard 
+          label="Perlu Revisi" 
+          value={data?.stats?.revisi || 0} 
+          icon={Files} 
+          variant="red" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -104,47 +146,13 @@ export default function AdminDashboard() {
               </Link>
             </div>
             
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                    <th className="pb-3 px-2">Mahasiswa</th>
-                    <th className="pb-3 px-2">Prodi Tujuan</th>
-                    <th className="pb-3 px-2">Status</th>
-                    <th className="pb-3 px-2 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {data?.recent_pendaftar?.length === 0 ? (
-                    <tr><td colSpan={4} className="py-12 text-center text-gray-400 italic">Belum ada data input.</td></tr>
-                  ) : (
-                    data?.recent_pendaftar?.map((p: Pendaftar) => (
-                      <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
-                        <td className="py-4 px-2">
-                          <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
-                          <p className="text-xs text-gray-400">NIM Asal: {p.nim_asal || '-'}</p>
-                        </td>
-                        <td className="py-4 px-2">
-                          <p className="font-medium text-gray-600">{p.prodi?.nama_prodi || '-'}</p>
-                        </td>
-                        <td className="py-4 px-2">
-                          <Badge variant={getStatusVariant(p.status)}>
-                            {p.status}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-2 text-right">
-                          <Link href={`/admin/pendaftar/${p.id}`}>
-                            <button className="text-gray-400 hover:text-blue-900 transition-colors">
-                              <ArrowRight size={20} />
-                            </button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable 
+              columns={columns} 
+              data={data?.recent_pendaftar || []} 
+              loading={loading}
+              emptyTitle="Belum Ada Data Input"
+              emptyDescription="Anda belum melakukan input data mahasiswa baru."
+            />
           </Card>
         </div>
 

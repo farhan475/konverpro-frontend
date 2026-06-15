@@ -7,7 +7,8 @@ import {
   Trash, 
   MagnifyingGlass,
   Buildings,
-  User
+  User,
+  Gear
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -35,6 +36,17 @@ export default function ProdiManagementPage() {
     id_kaprodi: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  // Settings Modal State
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [currentProdiSettings, setCurrentProdiSettings] = useState<Prodi | null>(null);
+  const [settingsFormData, setSettingsFormData] = useState({
+    min_nilai_huruf: 'C',
+    max_konversi_sks_persen: 70,
+    format_no_ba: 'BA/{YEAR}/{NO}/{PRODI}',
+    metode_pengakuan: 'direct'
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -83,6 +95,24 @@ export default function ProdiManagementPage() {
     setIsModalOpen(true);
   };
 
+  const handleOpenSettings = async (prodi: Prodi) => {
+    setCurrentProdiSettings(prodi);
+    setIsSettingsModalOpen(true);
+    try {
+      const { data } = await api.get(`/api/superadmin/prodi/${prodi.id}/settings`);
+      if (data.success) {
+        setSettingsFormData({
+          min_nilai_huruf: data.data.min_nilai_huruf || 'C',
+          max_konversi_sks_persen: data.data.max_konversi_sks_persen || 70,
+          format_no_ba: data.data.format_no_ba || 'BA/{YEAR}/{NO}/{PRODI}',
+          metode_pengakuan: data.data.metode_pengakuan || 'direct'
+        });
+      }
+    } catch (error) {
+      toast.error('Gagal mengambil pengaturan prodi');
+    }
+  };
+
   const handleSaveProdi = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -106,6 +136,22 @@ export default function ProdiManagementPage() {
       toast.error(error.response?.data?.message || 'Gagal menyimpan data program studi');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!currentProdiSettings) return;
+    setIsSavingSettings(true);
+    try {
+      const { data } = await api.put(`/api/superadmin/prodi/${currentProdiSettings.id}/settings`, settingsFormData);
+      if (data.success) {
+        toast.success('Pengaturan prodi berhasil disimpan');
+        setIsSettingsModalOpen(false);
+      }
+    } catch (error) {
+      toast.error('Gagal menyimpan pengaturan prodi');
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -141,7 +187,7 @@ export default function ProdiManagementPage() {
 
       <Card className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-md:mb-2">
             <Input 
               placeholder="Cari nama atau kode prodi..." 
               value={searchTerm}
@@ -196,6 +242,14 @@ export default function ProdiManagementPage() {
                       </td>
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button 
+                            variant="ghost" 
+                            className="w-9 h-9 p-0 rounded-full text-blue-900 hover:bg-blue-50"
+                            onClick={() => handleOpenSettings(prodi)}
+                            title="Pengaturan Prodi"
+                          >
+                            <Gear size={18} weight="bold" />
+                          </Button>
                           <Button 
                             variant="ghost" 
                             className="w-9 h-9 p-0 rounded-full text-blue-700 hover:bg-blue-50"
@@ -276,6 +330,61 @@ export default function ProdiManagementPage() {
             </select>
           </div>
         </form>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title={`Pengaturan Akademik: ${currentProdiSettings?.nama_prodi}`}
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setIsSettingsModalOpen(false)}>Batal</Button>
+            <Button onClick={handleSaveSettings} isLoading={isSavingSettings}>Simpan Pengaturan</Button>
+          </>
+        )}
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <Input 
+              label="Min. Nilai Huruf" 
+              placeholder="Contoh: C" 
+              value={settingsFormData.min_nilai_huruf}
+              onChange={(e) => setSettingsFormData({...settingsFormData, min_nilai_huruf: e.target.value})}
+            />
+            <Input 
+              label="Max. Konversi SKS (%)" 
+              type="number"
+              placeholder="Contoh: 70" 
+              value={settingsFormData.max_konversi_sks_persen}
+              onChange={(e) => setSettingsFormData({...settingsFormData, max_konversi_sks_persen: parseInt(e.target.value)})}
+            />
+          </div>
+          <Input 
+            label="Format Nomor Berita Acara" 
+            placeholder="BA/{YEAR}/{NO}/{PRODI}" 
+            value={settingsFormData.format_no_ba}
+            onChange={(e) => setSettingsFormData({...settingsFormData, format_no_ba: e.target.value})}
+          />
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold uppercase text-gray-400 tracking-wider ml-1">Metode Pengakuan</label>
+            <select 
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-blue-700 focus:bg-white focus:ring-4 focus:ring-blue-700/10 transition-all"
+              value={settingsFormData.metode_pengakuan}
+              onChange={(e) => setSettingsFormData({...settingsFormData, metode_pengakuan: e.target.value})}
+            >
+              <option value="direct">Langsung (Direct)</option>
+              <option value="scale">Skala (Scaled)</option>
+            </select>
+          </div>
+          
+          <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+            <p className="text-[10px] font-bold text-blue-900 uppercase tracking-widest mb-1">Tips Variabel Nomor BA:</p>
+            <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
+              Gunakan <b>&#123;YEAR&#125;</b> untuk tahun, <b>&#123;NO&#125;</b> untuk nomor urut, dan <b>&#123;PRODI&#125;</b> untuk kode prodi.
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

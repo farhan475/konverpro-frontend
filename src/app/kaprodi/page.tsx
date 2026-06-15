@@ -13,6 +13,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { StatCard } from "@/components/shared/StatCard";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -41,13 +43,6 @@ export default function KaprodiDashboard() {
     fetchDashboard();
   }, []);
 
-  const statsList = [
-    { label: "Perlu Validasi", value: data?.stats?.pending_validasi || 0, icon: CheckSquareOffset, color: "text-blue-900", bg: "bg-blue-50" },
-    { label: "Menunggu Revisi", value: data?.stats?.revisi || 0, icon: Clock, color: "text-orange", bg: "bg-orange-50" },
-    { label: "Total Disetujui", value: data?.stats?.approved || 0, icon: SealCheck, color: "text-green", bg: "bg-green-50" },
-    { label: "Total SKS Diakui", value: data?.stats?.total_sks || 0, icon: FilePdf, color: "text-red", bg: "bg-red-50" },
-  ];
-
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
   return (
@@ -65,21 +60,30 @@ export default function KaprodiDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsList.map((stat, i) => (
-          <Card key={i} className="flex items-center gap-5">
-            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0", stat.bg)}>
-              <stat.icon size={28} weight="bold" className={stat.color} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stat.value}
-              </p>
-            </div>
-          </Card>
-        ))}
+        <StatCard 
+          label="Perlu Validasi" 
+          value={data?.stats?.pending_validasi || 0} 
+          icon={CheckSquareOffset} 
+          variant="blue" 
+        />
+        <StatCard 
+          label="Menunggu Revisi" 
+          value={data?.stats?.revisi || 0} 
+          icon={Clock} 
+          variant="orange" 
+        />
+        <StatCard 
+          label="Total Disetujui" 
+          value={data?.stats?.approved || 0} 
+          icon={SealCheck} 
+          variant="green" 
+        />
+        <StatCard 
+          label="Total SKS Diakui" 
+          value={data?.stats?.total_sks || 0} 
+          icon={FilePdf} 
+          variant="red" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -95,7 +99,11 @@ export default function KaprodiDashboard() {
             
             <div className="space-y-4">
               {data?.recent_validations?.length === 0 ? (
-                <div className="py-12 text-center text-gray-400 italic">Antrean validasi kosong.</div>
+                <EmptyState 
+                  title="Antrean Validasi Kosong" 
+                  description="Belum ada permohonan konversi baru yang perlu divalidasi untuk program studi Anda."
+                  icon={CheckSquareOffset}
+                />
               ) : (
                 data?.recent_validations?.map((p: Pendaftar) => (
                   <div key={p.id} className="p-5 rounded-2xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">

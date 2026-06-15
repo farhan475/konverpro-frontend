@@ -14,6 +14,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { DataTable } from '@/components/shared/DataTable';
+import { EmptyState } from '@/components/shared/EmptyState';
 import api from '@/lib/api';
 import { ApiResponse } from '@/lib/types';
 import { toast } from 'sonner';
@@ -31,13 +33,20 @@ export default function AuditSystemPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<any>(null);
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<AuditLog[]>>(`/api/superadmin/audit?page=${page}`);
+      const { data } = await api.get<ApiResponse<AuditLog[]>>(`/api/superadmin/audit`, {
+        params: {
+          page: page,
+          search: searchTerm,
+          action: actionFilter
+        }
+      });
       if (data.success) {
         setLogs(data.data);
         setMeta(data.meta);
@@ -50,13 +59,46 @@ export default function AuditSystemPage() {
   };
 
   useEffect(() => {
-    fetchLogs();
-  }, [page]);
+    const delayDebounceFn = setTimeout(() => {
+      fetchLogs();
+    }, 500);
 
-  const filteredLogs = logs.filter(log => 
-    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (log.user?.nama_lengkap && log.user.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    return () => clearTimeout(delayDebounceFn);
+  }, [page, searchTerm, actionFilter]);
+
+  const columns = [
+    {
+      header: 'Waktu & IP',
+      accessor: (log: AuditLog) => (
+        <div>
+          <p className="font-bold text-gray-900">{new Date(log.created_at).toLocaleString('id-ID')}</p>
+          <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+            <ShieldCheck size={12} weight="bold" className="text-blue-500" /> {log.ip_address || 'System'}
+          </p>
+        </div>
+      )
+    },
+    {
+      header: 'User & Role',
+      accessor: (log: AuditLog) => (
+        <div>
+          <p className="font-bold text-gray-700">{log.user?.nama_lengkap || 'SYSTEM'}</p>
+          <Badge variant="neutral" className="mt-1 text-[10px] uppercase">{log.user?.role || '-'}</Badge>
+        </div>
+      )
+    },
+    {
+      header: 'Aksi & Detail',
+      accessor: (log: AuditLog) => (
+        <div className="max-w-md">
+          <p className="font-bold text-blue-900 uppercase text-xs">{log.action}</p>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            {log.details || '-'}
+          </p>
+        </div>
+      )
+    }
+  ];
 
   return (
     <div>
@@ -73,59 +115,47 @@ export default function AuditSystemPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
             <Input 
-              placeholder="Cari aksi atau nama user..." 
+              placeholder="Cari aksi, detail, atau nama user..." 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1); // Reset to page 1 on search
+              }}
               className="pl-11"
             />
             <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
-          <Button variant="secondary" className="px-4 text-xs font-bold uppercase tracking-widest">
-            <Funnel size={16} /> Filter Aksi
-          </Button>
+          <div className="flex items-center gap-2">
+            <select 
+              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-blue-700 focus:bg-white focus:ring-4 focus:ring-blue-700/10 transition-all font-bold text-gray-600 uppercase tracking-widest text-[10px]"
+              value={actionFilter}
+              onChange={(e) => {
+                setActionFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Semua Aksi</option>
+              <option value="login">Login</option>
+              <option value="create_prodi">Tambah Prodi</option>
+              <option value="approve_konversi">Approve Konversi</option>
+              <option value="config.updated">Update Config</option>
+            </select>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-gray-50/50">
-                <th className="py-4 px-4">Waktu & IP</th>
-                <th className="py-4 px-4">User & Role</th>
-                <th className="py-4 px-4">Aksi & Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                <tr><td colSpan={3} className="py-12 text-center text-gray-400 font-bold uppercase animate-pulse">Memuat Log...</td></tr>
-              ) : filteredLogs.length === 0 ? (
-                <tr><td colSpan={3} className="py-16 text-center text-gray-400 italic">Belum ada aktivitas tercatat.</td></tr>
-              ) : (
-                filteredLogs.map((log) => (
-                  <tr key={log.id} className="group hover:bg-gray-50/50 transition-colors">
-                    <td className="py-5 px-4">
-                      <p className="font-bold text-gray-900">{new Date(log.created_at).toLocaleString('id-ID')}</p>
-                      <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-0.5">
-                        <ShieldCheck size={12} weight="bold" className="text-blue-500" /> {log.ip_address || 'System'}
-                      </p>
-                    </td>
-                    <td className="py-5 px-4">
-                      <p className="font-bold text-gray-700">{log.user?.nama_lengkap || 'SYSTEM'}</p>
-                      <Badge variant="neutral" className="mt-1 text-[10px] uppercase">{log.user?.role || '-'}</Badge>
-                    </td>
-                    <td className="py-5 px-4">
-                      <div className="max-w-md">
-                        <p className="font-bold text-blue-900 uppercase text-xs">{log.action}</p>
-                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                          {log.details || '-'}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        {logs.length === 0 && !loading ? (
+          <EmptyState 
+            title="Tidak Ada Log Ditemukan" 
+            description="Belum ada aktivitas yang tercatat atau tidak ada data yang cocok dengan pencarian anda."
+            icon={Clock}
+          />
+        ) : (
+          <DataTable 
+            columns={columns} 
+            data={logs} 
+            loading={loading}
+          />
+        )}
 
         {meta && meta.last_page > 1 && (
           <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">

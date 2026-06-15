@@ -13,7 +13,8 @@ import {
   Warning,
   Info,
   MagicWand,
-  ArrowRight
+  ArrowRight,
+  FilePdf
 } from '@phosphor-icons/react';
 import { useRouter, useParams } from 'next/navigation';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -128,9 +129,30 @@ export default function DetailValidasiPage() {
     }
   };
 
+  const handleDownloadBa = async () => {
+    try {
+      const response = await api.get(`/api/kaprodi/validasi/${id}/download-ba`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Berita_Acara_${pendaftar.nim_asal || pendaftar.nama_lengkap}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      toast.error('Gagal mengunduh Berita Acara');
+    }
+  };
+
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Data Validasi...</div>;
 
   const totalSksDiakui = pendaftar.hasil_konversi?.reduce((acc: number, curr: any) => acc + (curr.sks_diakui || 0), 0) || 0;
+  const totalSksKurikulum = pendaftar.prodi?.kurikulum_mk?.reduce((acc: number, curr: any) => acc + (curr.sks || 0), 0) || 0;
+  const maxSksPersen = pendaftar.prodi?.pengaturan?.max_konversi_sks_persen || 70;
+  const maxSksLimit = Math.floor((maxSksPersen / 100) * totalSksKurikulum);
+  const isOverLimit = totalSksDiakui > maxSksLimit && totalSksKurikulum > 0;
 
   return (
     <div>
@@ -160,7 +182,12 @@ export default function DetailValidasiPage() {
               <div className="grid grid-cols-2 gap-8 border-l border-gray-100 pl-8">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total SKS Diakui</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalSksDiakui} SKS</p>
+                  <div className="flex items-center gap-2">
+                    <p className={cn("text-2xl font-bold", isOverLimit ? "text-red-600" : "text-blue-900")}>
+                      {totalSksDiakui} SKS
+                    </p>
+                    {isOverLimit && <Badge variant="danger" className="text-[10px] py-0">OVER LIMIT</Badge>}
+                  </div>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
@@ -168,6 +195,15 @@ export default function DetailValidasiPage() {
                 </div>
               </div>
             </div>
+
+            {isOverLimit && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-700">
+                <Warning size={20} weight="bold" />
+                <p className="text-xs font-bold uppercase tracking-tight">
+                  Peringatan: Total SKS diakui ({totalSksDiakui}) melebihi batas maksimal {maxSksPersen}% ({maxSksLimit} SKS). Kurangi pengakuan mata kuliah sebelum menyetujui.
+                </p>
+              </div>
+            )}
           </Card>
 
           {/* Tabel Konversi */}
@@ -253,30 +289,41 @@ export default function DetailValidasiPage() {
           <Card className="bg-white border-blue-900/10">
             <h3 className="text-lg font-bold text-gray-900 mb-6">Keputusan Kaprodi</h3>
             <div className="space-y-3">
-              <Button 
-                className="w-full py-4 bg-green text-white hover:bg-green/90 shadow-lg shadow-green/20"
-                onClick={handleApprove}
-                isLoading={isApproving}
-                disabled={pendaftar.status !== 'Pending Kaprodi'}
-              >
-                <CheckCircle size={20} weight="bold" /> Setujui Konversi
-              </Button>
-              <Button 
-                variant="secondary" 
-                className="w-full py-4 border-orange/50 text-orange hover:bg-orange/5"
-                onClick={() => setIsRevisiModalOpen(true)}
-                disabled={pendaftar.status !== 'Pending Kaprodi'}
-              >
-                <Clock size={20} weight="bold" /> Minta Revisi
-              </Button>
-              <Button 
-                variant="danger" 
-                className="w-full py-4"
-                onClick={() => setIsRejectModalOpen(true)}
-                disabled={pendaftar.status !== 'Pending Kaprodi'}
-              >
-                <XCircle size={20} weight="bold" /> Tolak Permohonan
-              </Button>
+              {pendaftar.status === 'Approved' ? (
+                <Button 
+                  className="w-full py-4 bg-blue-900 text-white hover:bg-blue-800 shadow-lg shadow-blue-900/20"
+                  onClick={handleDownloadBa}
+                >
+                  <FilePdf size={20} weight="bold" /> Unduh Berita Acara
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    className="w-full py-4 bg-green text-white hover:bg-green/90 shadow-lg shadow-green/20"
+                    onClick={handleApprove}
+                    isLoading={isApproving}
+                    disabled={pendaftar.status !== 'Pending Kaprodi'}
+                  >
+                    <CheckCircle size={20} weight="bold" /> Setujui Konversi
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    className="w-full py-4 border-orange/50 text-orange hover:bg-orange/5"
+                    onClick={() => setIsRevisiModalOpen(true)}
+                    disabled={pendaftar.status !== 'Pending Kaprodi'}
+                  >
+                    <Clock size={20} weight="bold" /> Minta Revisi
+                  </Button>
+                  <Button 
+                    variant="danger" 
+                    className="w-full py-4"
+                    onClick={() => setIsRejectModalOpen(true)}
+                    disabled={pendaftar.status !== 'Pending Kaprodi'}
+                  >
+                    <XCircle size={20} weight="bold" /> Tolak Permohonan
+                  </Button>
+                </>
+              )}
             </div>
           </Card>
 

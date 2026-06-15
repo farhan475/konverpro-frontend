@@ -13,6 +13,7 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { StatCard } from "@/components/shared/StatCard";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { ApiResponse } from "@/lib/types";
@@ -41,13 +42,6 @@ export default function SuperadminDashboard() {
     fetchDashboard();
   }, []);
 
-  const statsList = [
-    { label: "Total Pengguna", value: data?.stats?.total_user || 0, icon: UsersThree, color: "text-blue-900", bg: "bg-blue-50" },
-    { label: "Program Studi", value: data?.stats?.total_prodi || 0, icon: Buildings, color: "text-yellow", bg: "bg-yellow-bg" },
-    { label: "Total Permohonan", value: data?.stats?.total_pendaftar || 0, icon: Files, color: "text-purple", bg: "bg-purple-50" },
-    { label: "Total Log Audit", value: data?.stats?.total_audit || 0, icon: ListBullets, color: "text-green", bg: "bg-green-50" },
-  ];
-
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
   return (
@@ -63,21 +57,30 @@ export default function SuperadminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsList.map((stat, i) => (
-          <Card key={i} className="flex items-center gap-5">
-            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0", stat.bg)}>
-              <stat.icon size={28} weight="bold" className={stat.color} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stat.value}
-              </p>
-            </div>
-          </Card>
-        ))}
+        <StatCard 
+          label="Total Pengguna" 
+          value={data?.stats?.total_user || 0} 
+          icon={UsersThree} 
+          variant="blue" 
+        />
+        <StatCard 
+          label="Program Studi" 
+          value={data?.stats?.total_prodi || 0} 
+          icon={Buildings} 
+          variant="yellow" 
+        />
+        <StatCard 
+          label="Total Permohonan" 
+          value={data?.stats?.total_pendaftar || 0} 
+          icon={Files} 
+          variant="purple" 
+        />
+        <StatCard 
+          label="Total Log Audit" 
+          value={data?.stats?.total_audit || 0} 
+          icon={ListBullets} 
+          variant="green" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

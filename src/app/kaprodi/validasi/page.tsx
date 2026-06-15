@@ -24,6 +24,10 @@ export default function ValidasiKaprodiPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
 
   const fetchValidasi = async () => {
     setLoading(true);
@@ -59,6 +63,42 @@ export default function ValidasiKaprodiPage() {
     (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const pendingItems = filteredData.filter(p => p.status === 'Pending Kaprodi');
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length > 0 && selectedIds.length === pendingItems.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingItems.map(p => p.id));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!confirm(`Apakah Anda yakin ingin menyetujui ${selectedIds.length} permohonan sekaligus?`)) return;
+
+    setIsBulkApproving(true);
+    try {
+      const { data } = await api.post('/api/kaprodi/validasi/bulk-approve', { ids: selectedIds });
+      if (data.success) {
+        toast.success(data.message);
+        setSelectedIds([]);
+        fetchValidasi();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Gagal melakukan persetujuan massal');
+    } finally {
+      setIsBulkApproving(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader 
@@ -77,7 +117,16 @@ export default function ValidasiKaprodiPage() {
             />
             <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {selectedIds.length > 0 && (
+              <Button 
+                onClick={handleBulkApprove} 
+                isLoading={isBulkApproving}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-widest px-6"
+              >
+                <CheckSquareOffset size={18} weight="bold" /> Approve ({selectedIds.length})
+              </Button>
+            )}
             <Button variant="secondary" className="px-4 text-xs font-bold uppercase tracking-widest">
               <Funnel size={16} /> Filter Status
             </Button>
@@ -88,6 +137,15 @@ export default function ValidasiKaprodiPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                <th className="pb-4 px-4 w-10">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
+                    checked={selectedIds.length > 0 && selectedIds.length === pendingItems.length}
+                    onChange={toggleSelectAll}
+                    disabled={pendingItems.length === 0}
+                  />
+                </th>
                 <th className="pb-4 px-4">Mahasiswa</th>
                 <th className="pb-4 px-4">Asal Kampus / Prodi</th>
                 <th className="pb-4 px-4 text-center">SKS Diakui</th>
@@ -97,12 +155,24 @@ export default function ValidasiKaprodiPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={5} className="py-12 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Antrean...</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Antrean...</td></tr>
               ) : filteredData.length === 0 ? (
-                <tr><td colSpan={5} className="py-16 text-center text-gray-400 italic font-medium">Belum ada permohonan yang perlu divalidasi.</td></tr>
+                <tr><td colSpan={6} className="py-16 text-center text-gray-400 italic font-medium">Belum ada permohonan yang perlu divalidasi.</td></tr>
               ) : (
                 filteredData.map((p) => (
-                  <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
+                  <tr key={p.id} className={cn(
+                    "group hover:bg-gray-50/50 transition-colors",
+                    selectedIds.includes(p.id) && "bg-blue-50/50"
+                  )}>
+                    <td className="py-5 px-4">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
+                        disabled={p.status !== 'Pending Kaprodi'}
+                        checked={selectedIds.includes(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                      />
+                    </td>
                     <td className="py-5 px-4">
                       <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
                       <p className="text-[11px] text-gray-400 font-medium">NIM: {p.nim_asal || '-'}</p>
