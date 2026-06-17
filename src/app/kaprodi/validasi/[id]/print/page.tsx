@@ -133,10 +133,10 @@ export default function PrintBeritaAcara() {
                 <ShieldCheck size={40} className="text-emerald-500 mb-1" weight="fill" />
                 <span className="text-[7pt] font-mono text-slate-400 break-all px-4">{data.pendaftar.hash_ba_digital}</span>
                 <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-[8pt] font-black uppercase text-blue-900">Signed Digitally</span>
+                    <span className="text-[8pt] font-bold uppercase text-blue-900">Signed Digitally</span>
                 </div>
             </div>
-            <p className="uppercase font-black border-t border-black pt-1">{data.kampus.rektor_pimpinan || 'KAPRODI'}</p>
+            <p className="uppercase font-bold border-t border-black pt-1">{data.kampus.rektor_pimpinan || 'KAPRODI'}</p>
             <p className="text-[8pt] font-bold text-slate-500">ID Digital: {data.pendaftar.hash_ba_digital.split('-').pop()}</p>
         </div>
       </div>

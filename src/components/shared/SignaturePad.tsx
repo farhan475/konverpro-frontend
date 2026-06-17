@@ -104,7 +104,7 @@ export const SignaturePad = ({ onSave, isSaving }: SignaturePadProps) => {
         />
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30 select-none">
-            <p className="text-gray-400 font-bold uppercase tracking-[0.2em]">Goreskan Tanda Tangan Disini</p>
+            <p className="text-gray-400 font-bold uppercase tracking-wider">Goreskan Tanda Tangan Disini</p>
           </div>
         )}
       </div>

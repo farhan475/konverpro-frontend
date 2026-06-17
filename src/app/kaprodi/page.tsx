@@ -62,7 +62,7 @@ export default function KaprodiDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           label="Perlu Validasi" 
-          value={data?.stats?.pending_validasi || 0} 
+          value={data?.stats?.pending_validation || 0} 
           icon={CheckSquareOffset} 
           variant="blue" 
         />
@@ -98,14 +98,14 @@ export default function KaprodiDashboard() {
             </div>
             
             <div className="space-y-4">
-              {data?.recent_validations?.length === 0 ? (
+              {data?.recent_validation?.length === 0 ? (
                 <EmptyState 
                   title="Antrean Validasi Kosong" 
                   description="Belum ada permohonan konversi baru yang perlu divalidasi untuk program studi Anda."
                   icon={CheckSquareOffset}
                 />
               ) : (
-                data?.recent_validations?.map((p: Pendaftar) => (
+                data?.recent_validation?.map((p: Pendaftar) => (
                   <div key={p.id} className="p-5 rounded-2xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>

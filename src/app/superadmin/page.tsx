@@ -147,10 +147,19 @@ export default function SuperadminDashboard() {
               <h4 className="text-xs font-bold uppercase tracking-widest text-yellow mb-2">Status AI</h4>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Sumopod AI Service</span>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-green uppercase">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green"></div> Active
-                </span>
+                {data?.ai_status?.configured ? (
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-green uppercase">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green"></div> Terkonfigurasi
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-orange uppercase">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange"></div> Belum Dikonfigurasi
+                  </span>
+                )}
               </div>
+              {data?.ai_status?.configured && (
+                <p className="text-[10px] text-white/40 mt-1">Model: {data.ai_status.model}</p>
+              )}
             </div>
           </Card>
         </div>

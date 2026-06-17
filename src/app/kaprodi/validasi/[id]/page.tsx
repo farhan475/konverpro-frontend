@@ -40,7 +40,7 @@ export default function DetailValidasiPage() {
   // Action state
   const [isApproving, setIsApproving] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
-  const [isRejecting, setIsRejointing] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [catatan, setCatatan] = useState('');
   
   // Modal states

@@ -202,7 +202,21 @@ export default function AdminDetailPendaftarPage() {
               <Button 
                 variant="secondary" 
                 className="w-full justify-start text-xs font-bold bg-white"
-                onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/storage/${pendaftar.file_transkrip_excel_path}`)}
+                onClick={async () => {
+                  try {
+                    const response = await api.get(`/api/files/excel/${id}`, { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+                  } catch {
+                    toast.error('Gagal mengunduh file Excel');
+                  }
+                }}
               >
                 <FileXls size={18} weight="bold" className="text-green-600" /> Transkrip Excel
               </Button>
@@ -210,7 +224,21 @@ export default function AdminDetailPendaftarPage() {
                 <Button 
                   variant="secondary" 
                   className="w-full justify-start text-xs font-bold bg-white"
-                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/storage/${pendaftar.file_transkrip_pdf_path}`)}
+                  onClick={async () => {
+                    try {
+                      const response = await api.get(`/api/files/pdf/${id}`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(url);
+                    } catch {
+                      toast.error('Gagal mengunduh file PDF');
+                    }
+                  }}
                 >
                   <FilePdf size={18} weight="bold" className="text-red-600" /> Transkrip PDF Asli
                 </Button>

@@ -187,7 +187,7 @@ export default function ScannerAkademik() {
       {/* Left Panel */}
       <div className="lg:col-span-4 space-y-6">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-xs font-black uppercase text-slate-900 mb-4 tracking-widest border-b border-slate-100 pb-2">
+          <h3 className="text-xs font-bold uppercase text-slate-900 mb-4 tracking-widest border-b border-slate-100 pb-2">
             1. Data Pendaftar
           </h3>
           <div className="space-y-4">
@@ -235,7 +235,7 @@ export default function ScannerAkademik() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-xs font-black uppercase text-slate-900 mb-4 tracking-widest border-b border-slate-100 pb-2">
+          <h3 className="text-xs font-bold uppercase text-slate-900 mb-4 tracking-widest border-b border-slate-100 pb-2">
             2. Upload Transkrip
           </h3>
           <div
@@ -260,7 +260,7 @@ export default function ScannerAkademik() {
           <button
             disabled={!file || !selectedProdiId || loading}
             onClick={handleProcess}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-blue-700 transition disabled:bg-slate-200 disabled:text-slate-400"
+            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg hover:bg-blue-700 transition disabled:bg-slate-200 disabled:text-slate-400"
           >
             {loading ? (
               <Spinner className="animate-spin mx-auto" />
@@ -275,7 +275,7 @@ export default function ScannerAkademik() {
       <div className="lg:col-span-8 space-y-6">
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[500px]">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
               <ClipboardText size={20} className="text-blue-600" /> Hasil Baca
               Transkrip
             </h4>
@@ -283,7 +283,7 @@ export default function ScannerAkademik() {
 
           <div className="flex-1 overflow-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white text-[10px] uppercase font-black text-slate-400 border-b border-slate-100 sticky top-0 z-10">
+              <thead className="bg-white text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 sticky top-0 z-10">
                 <tr>
                   <th className="px-5 py-3">MK Asal</th>
                   <th className="px-5 py-3">Nilai</th>
@@ -311,7 +311,7 @@ export default function ScannerAkademik() {
                           ({res.sks_asal} SKS)
                         </span>
                       </td>
-                      <td className="px-5 py-3 font-black text-slate-500">
+                      <td className="px-5 py-3 font-bold text-slate-500">
                         {res.nilai_asal}
                       </td>
                       <td className="px-5 py-3">
@@ -328,11 +328,11 @@ export default function ScannerAkademik() {
                       </td>
                       <td className="px-5 py-3 text-center">
                         {res.diakui ? (
-                          <span className="px-2 py-1 rounded bg-green-50 text-green-600 text-[10px] font-black uppercase border border-green-100">
+                          <span className="px-2 py-1 rounded bg-green-50 text-green-600 text-[10px] font-bold uppercase border border-green-100">
                             MATCH
                           </span>
                         ) : (
-                          <span className="px-2 py-1 rounded bg-slate-100 text-slate-400 text-[10px] font-black uppercase border border-slate-200">
+                          <span className="px-2 py-1 rounded bg-slate-100 text-slate-400 text-[10px] font-bold uppercase border border-slate-200">
                             NO MATCH
                           </span>
                         )}
@@ -349,7 +349,7 @@ export default function ScannerAkademik() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-4 bg-[#031f37] text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl hover:bg-black transition flex justify-center items-center gap-2"
+                className="w-full py-4 bg-[#031f37] text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-xl hover:bg-black transition flex justify-center items-center gap-2"
               >
                 {saving ? (
                   <Spinner className="animate-spin" />

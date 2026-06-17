@@ -52,7 +52,6 @@ export default function LoginPage() {
         const token = data.data.access_token || data.data.token;
         const user = data.data.user;
 
-
         if (!token || !user?.role) {
           throw new Error("Respons login dari server tidak lengkap.");
         }

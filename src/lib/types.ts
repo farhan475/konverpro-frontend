@@ -3,6 +3,7 @@ export type Role = 'superadmin' | 'admin' | 'akademik' | 'kaprodi';
 export type StatusPendaftar = 
   | 'Baru' 
   | 'AI Processing' 
+  | 'Review Akademik'
   | 'Pending Kaprodi' 
   | 'Revisi' 
   | 'Approved' 
@@ -70,6 +71,8 @@ export interface Pendaftar {
   prodi?: Prodi;
   transkrip_asal?: TranskripAsal[];
   hasil_konversi?: HasilKonversi[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ApiResponse<T> {

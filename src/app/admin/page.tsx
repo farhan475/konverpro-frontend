@@ -174,11 +174,27 @@ export default function AdminDashboard() {
                 <p className="text-sm text-blue-900/70 font-medium">Unggah file Excel dan lampirkan PDF asli (opsional).</p>
               </li>
             </ul>
-            <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/template/download`} className="mt-8 block">
-              <Button variant="secondary" className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10">
-                Unduh Template Excel
-              </Button>
-            </a>
+            <Button 
+              variant="secondary" 
+              className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10 mt-8"
+              onClick={async () => {
+                try {
+                  const response = await api.get('/api/admin/template/download', { responseType: 'blob' });
+                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'Template_Konversi_UNSIA.xlsx');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                } catch {
+                  toast.error('Gagal mengunduh template.');
+                }
+              }}
+            >
+              Unduh Template Excel
+            </Button>
           </Card>
 
           <Card className="bg-white">

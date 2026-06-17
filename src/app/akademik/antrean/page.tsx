@@ -28,7 +28,7 @@ export default function AntreanAkademikPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stats, setStats] = useState({ baru: 0, ai: 0, total: 0 });
+  const [stats, setStats] = useState({ baru: 0, ai: 0, review: 0, total: 0 });
 
   const fetchAntrean = async () => {
     setLoading(true);
@@ -40,7 +40,8 @@ export default function AntreanAkademikPage() {
         // Simple stats calculation
         const baru = data.data.filter(p => p.status === 'Baru').length;
         const ai = data.data.filter(p => p.status === 'AI Processing').length;
-        setStats({ baru, ai, total: data.data.length });
+        const review = data.data.filter(p => p.status === 'Review Akademik').length;
+        setStats({ baru, ai, review, total: data.data.length });
       }
     } catch (error) {
       toast.error('Gagal mengambil data antrean');
@@ -60,6 +61,7 @@ export default function AntreanAkademikPage() {
       case 'Revisi': return 'warning';
       case 'AI Processing': return 'ai';
       case 'Pending Kaprodi': return 'info';
+      case 'Review Akademik': return 'info';
       default: return 'neutral';
     }
   };
@@ -105,12 +107,12 @@ export default function AntreanAkademikPage() {
           </div>
         </Card>
         <Card className="flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-purple-50 text-purple">
-            <MagicWand size={28} weight="bold" />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-700">
+            <Eye size={28} weight="bold" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Sedang Proses AI</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.ai}</p>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Perlu Konfirmasi</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.review}</p>
           </div>
         </Card>
       </div>

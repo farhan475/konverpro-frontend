@@ -9,6 +9,7 @@ import {
   FilePdf,
   MagicWand, 
   CheckCircle,
+  ArrowRight,
   Warning,
   Table,
   Info,
@@ -35,6 +36,7 @@ export default function DetailAntreanPage() {
   const [pendaftar, setPendaftar] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -94,12 +96,27 @@ export default function DetailAntreanPage() {
       const { data } = await api.post(`/api/akademik/antrean/${id}/proses`);
       if (data.success) {
         toast.success('Proses matching AI berhasil dimulai');
-        router.push('/akademik/antrean');
+        fetchDetail();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Gagal memulai proses matching');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmToKaprodi = async () => {
+    setIsConfirming(true);
+    try {
+      const { data } = await api.post(`/api/akademik/antrean/${id}/confirm`);
+      if (data.success) {
+        toast.success('Hasil matching dikonfirmasi dan diteruskan ke Kaprodi.');
+        router.push('/akademik/antrean');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Gagal mengkonfirmasi hasil matching');
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -310,23 +327,42 @@ export default function DetailAntreanPage() {
             isEditing ? "bg-gray-400 opacity-50 grayscale" : "bg-blue-900 shadow-blue-900/20"
           )}>
             <h3 className="text-lg font-bold mb-4">Aksi Akademik</h3>
-            <p className="text-blue-100/70 text-sm mb-8 leading-relaxed">
-              {isEditing 
-                ? "Simpan perubahan terlebih dahulu sebelum memproses matching."
-                : "Jika data parsing di samping sudah benar, silakan klik tombol di bawah untuk memicu proses matching otomatis menggunakan AI."}
-            </p>
 
-            <Button 
-              className="w-full py-4 bg-yellow text-blue-900 hover:bg-yellow/90 font-bold uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3"
-              onClick={handleProsesMatching}
-              isLoading={isProcessing}
-              disabled={isEditing || (pendaftar.status !== 'Baru' && pendaftar.status !== 'Revisi')}
-            >
-              <MagicWand size={20} weight="bold" />
-              Proses Matching AI
-            </Button>
+            {pendaftar.status === 'Review Akademik' ? (
+              <>
+                <p className="text-blue-100/70 text-sm mb-8 leading-relaxed">
+                  Hasil matching sudah tersedia. Silakan review tabel di samping, lalu konfirmasi untuk meneruskan ke Kaprodi.
+                </p>
+                <Button 
+                  className="w-full py-4 bg-green text-white hover:bg-green/90 font-bold uppercase tracking-wider rounded-2xl flex items-center justify-center gap-3"
+                  onClick={handleConfirmToKaprodi}
+                  isLoading={isConfirming}
+                  disabled={isEditing}
+                >
+                  <ArrowRight size={20} weight="bold" />
+                  Konfirmasi ke Kaprodi
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-blue-100/70 text-sm mb-8 leading-relaxed">
+                  {isEditing 
+                    ? "Simpan perubahan terlebih dahulu sebelum memproses matching."
+                    : "Jika data parsing di samping sudah benar, silakan klik tombol di bawah untuk memicu proses matching otomatis menggunakan AI."}
+                </p>
+                <Button 
+                  className="w-full py-4 bg-yellow text-blue-900 hover:bg-yellow/90 font-bold uppercase tracking-wider rounded-2xl flex items-center justify-center gap-3"
+                  onClick={handleProsesMatching}
+                  isLoading={isProcessing}
+                  disabled={isEditing || (pendaftar.status !== 'Baru' && pendaftar.status !== 'Revisi')}
+                >
+                  <MagicWand size={20} weight="bold" />
+                  Proses Matching AI
+                </Button>
+              </>
+            )}
 
-            {!isEditing && (
+            {!isEditing && pendaftar.status !== 'Review Akademik' && (
               <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/10">
                 <div className="flex gap-3">
                   <Info size={20} weight="bold" className="text-yellow shrink-0" />

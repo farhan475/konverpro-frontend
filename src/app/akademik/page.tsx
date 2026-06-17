@@ -5,6 +5,7 @@ import {
   ListBullets, 
   Books, 
   Clock,
+  Eye,
   MagicWand,
   ArrowRight,
   ChartBar
@@ -73,16 +74,16 @@ export default function AkademikDashboard() {
           variant="purple" 
         />
         <StatCard 
+          label="Review Akademik" 
+          value={data?.stats?.review_akademik || 0} 
+          icon={Eye} 
+          variant="yellow" 
+        />
+        <StatCard 
           label="Pending Kaprodi" 
           value={data?.stats?.pending_kaprodi || 0} 
           icon={Clock} 
           variant="orange" 
-        />
-        <StatCard 
-          label="Laju Konversi" 
-          value="82%" 
-          icon={ChartBar} 
-          variant="green" 
         />
       </div>
 
@@ -145,30 +146,40 @@ export default function AkademikDashboard() {
               Sistem menggunakan Fuzzy Matching dan Sumopod AI untuk memetakan mata kuliah secara otomatis.
             </p>
             
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Akurasi Fuzzy</span>
-                  <span className="text-xs font-bold">85%</span>
+            {(() => {
+              const fuzzyAcc = data?.ai_performance?.fuzzy_accuracy || 0;
+              const aiAcc = data?.ai_performance?.ai_accuracy || 0;
+              const fuzzyTotal = data?.ai_performance?.fuzzy_total || 0;
+              const aiTotal = data?.ai_performance?.ai_total || 0;
+              return (
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Akurasi Fuzzy</span>
+                      <span className="text-xs font-bold">{fuzzyTotal > 0 ? `${fuzzyAcc}%` : 'N/A'}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow rounded-full transition-all duration-700" style={{ width: `${fuzzyTotal > 0 ? fuzzyAcc : 0}%` }}></div>
+                    </div>
+                    <p className="text-[9px] text-blue-100/40 mt-1">{fuzzyTotal} pemetaan • Threshold: {data?.ai_performance?.fuzzy_threshold || 80}%</p>
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Akurasi Sumopod</span>
+                      <span className="text-xs font-bold">{aiTotal > 0 ? `${aiAcc}%` : 'N/A'}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-green rounded-full transition-all duration-700" style={{ width: `${aiTotal > 0 ? aiAcc : 0}%` }}></div>
+                    </div>
+                    <p className="text-[9px] text-blue-100/40 mt-1">{aiTotal} pemetaan • Threshold: {data?.ai_performance?.ai_threshold || 50}%</p>
+                  </div>
                 </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-yellow w-[85%] rounded-full"></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Akurasi Sumopod</span>
-                  <span className="text-xs font-bold">92%</span>
-                </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-green w-[92%] rounded-full"></div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <p className="mt-8 text-[10px] text-blue-100/40 font-medium">
-              Data berdasarkan parameter threshold yang diatur Superadmin.
+              Data dihitung real-time dari hasil pemetaan yang sudah diproses.
             </p>
           </Card>
         </div>

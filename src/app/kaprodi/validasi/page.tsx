@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import api from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
