@@ -20,21 +20,11 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
 
     const verify = async () => {
       let user: User | null = null;
-      const userStr = localStorage.getItem('konverpro_user');
-
-      if (userStr && userStr !== 'undefined') {
-        try {
-          user = JSON.parse(userStr) as User;
-        } catch {
-          user = null;
-        }
-      }
 
       try {
         const { data } = await api.get('/api/auth/me');
         if (data.success && data.data) {
           user = data.data as User;
-          localStorage.setItem('konverpro_user', JSON.stringify(user));
         }
       } catch {
         user = null;
@@ -43,7 +33,6 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
       if (!isMounted) return;
 
       if (!user?.role) {
-        localStorage.removeItem('konverpro_user');
         if (pathname !== '/' && !toastShown.current) {
           toast.error('Sesi berakhir. Silakan login kembali.');
           toastShown.current = true;

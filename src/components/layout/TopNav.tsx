@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Role } from '@/lib/types';
 import api from '@/lib/api';
+import { useUser } from '@/lib/hooks/useUser';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
 
 interface NavItem {
@@ -25,13 +26,10 @@ interface TopNavProps {
 
 export const TopNav = ({ role, navItems }: TopNavProps) => {
   const pathname = usePathname();
-  
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('konverpro_user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
+  const { user } = useUser();
 
   const handleLogout = async () => {
     await api.post('/api/auth/logout').catch(() => {});
-    localStorage.removeItem('konverpro_user');
     window.location.href = '/';
   };
 

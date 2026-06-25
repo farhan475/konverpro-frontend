@@ -26,8 +26,6 @@ api.interceptors.response.use((response) => {
 }, (error) => {
   if (error.response?.status === 401) {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('konverpro_user');
-
       const requestUrl = error.config?.url || '';
       const isLoginPage = window.location.pathname === '/';
       const isLoginAttempt = requestUrl.includes('/api/auth/login');

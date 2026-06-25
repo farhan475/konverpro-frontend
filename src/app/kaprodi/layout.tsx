@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { 
-  SquaresFour, 
-  CheckSquareOffset, 
-  ChartBar
+import {
+  SquaresFour,
+  CheckSquareOffset,
+  ChartBar,
+  PenNib
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -22,6 +23,7 @@ export default function KaprodiLayout({
     { label: 'Dashboard', href: '/kaprodi', icon: SquaresFour },
     { label: 'Validasi', href: '/kaprodi/validasi', icon: CheckSquareOffset },
     { label: 'Laporan', href: '/kaprodi/laporan', icon: ChartBar },
+    { label: 'Tanda Tangan', href: '/kaprodi/tanda-tangan', icon: PenNib },
   ];
 
   if (!isAuthorized) {

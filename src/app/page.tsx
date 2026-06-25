@@ -25,18 +25,11 @@ export default function LoginPage() {
       try {
         const { data } = await api.get('/api/auth/me');
         if (data.success && data.data?.role) {
-          localStorage.setItem("konverpro_user", JSON.stringify(data.data));
           router.push(`/${data.data.role}`);
           return;
         }
-
-        const userStr = localStorage.getItem("konverpro_user");
-        if (userStr && userStr !== "undefined") {
-          const user = JSON.parse(userStr);
-          router.push(`/${user.role}`);
-        }
       } catch {
-        localStorage.removeItem("konverpro_user");
+        // No active session — stay on login page
       }
     };
 
@@ -57,8 +50,6 @@ export default function LoginPage() {
         if (!user?.role) {
           throw new Error("Respons login dari server tidak lengkap.");
         }
-
-        localStorage.setItem("konverpro_user", JSON.stringify(user));
 
         toast.success(`Selamat datang, ${user.nama_lengkap}!`);
         router.push(`/${user.role}`);
