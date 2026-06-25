@@ -15,25 +15,25 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { DataTable } from "@/components/shared/DataTable";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 import api from "@/lib/api";
-import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
+import { downloadPrivateFile } from "@/lib/download";
+import { AdminDashboardData, ApiResponse, Pendaftar } from "@/lib/types";
 import { toast } from "sonner";
+import { getStatusBadgeVariant } from "@/lib/status";
 
 export default function AdminDashboard() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<any>>('/api/admin/dashboard');
+      const { data } = await api.get<ApiResponse<AdminDashboardData>>('/api/admin/dashboard');
       if (data.success) {
         setData(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data dashboard');
     } finally {
       setLoading(false);
@@ -43,17 +43,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboard();
   }, []);
-
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
@@ -76,7 +65,7 @@ export default function AdminDashboard() {
     {
       header: 'Status',
       accessor: (p: Pendaftar) => (
-        <Badge variant={getStatusVariant(p.status)}>
+        <Badge variant={getStatusBadgeVariant(p.status)}>
           {p.status}
         </Badge>
       )
@@ -179,15 +168,7 @@ export default function AdminDashboard() {
               className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10 mt-8"
               onClick={async () => {
                 try {
-                  const response = await api.get('/api/admin/template/download', { responseType: 'blob' });
-                  const url = window.URL.createObjectURL(new Blob([response.data]));
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.setAttribute('download', 'Template_Konversi_UNSIA.xlsx');
-                  document.body.appendChild(link);
-                  link.click();
-                  link.remove();
-                  window.URL.revokeObjectURL(url);
+                  await downloadPrivateFile('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
                 } catch {
                   toast.error('Gagal mengunduh template.');
                 }
@@ -199,10 +180,7 @@ export default function AdminDashboard() {
 
           <Card className="bg-white">
             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Bantuan Teknis</h4>
-            <p className="text-sm text-gray-600 mb-4">Jika mengalami kendala saat upload, silakan hubungi tim IT.</p>
-            <Button variant="ghost" className="w-full justify-start px-0 text-blue-700 hover:bg-transparent hover:underline">
-              Buka Tiket Bantuan
-            </Button>
+            <p className="text-sm text-gray-600">Jika mengalami kendala saat upload, hubungi tim IT UNSIA melalui kanal dukungan internal.</p>
           </Card>
         </div>
       </div>

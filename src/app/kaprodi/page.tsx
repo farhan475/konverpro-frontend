@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   CheckSquareOffset, 
-  Signature, 
+  QrCode,
   Clock,
   SealCheck,
   ArrowRight,
@@ -12,27 +12,25 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 import api from "@/lib/api";
-import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
+import { ApiResponse, KaprodiDashboardData, Pendaftar } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function KaprodiDashboard() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<KaprodiDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<any>>('/api/kaprodi/dashboard');
+      const { data } = await api.get<ApiResponse<KaprodiDashboardData>>('/api/kaprodi/dashboard');
       if (data.success) {
         setData(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data dashboard');
     } finally {
       setLoading(false);
@@ -48,7 +46,7 @@ export default function KaprodiDashboard() {
   return (
     <div>
       <PageHeader 
-        title="Dashboard Kaprodi" 
+        title={`Dashboard Kaprodi${data?.prodi?.[0] ? ` - ${data.prodi[0].nama_prodi}` : ''}`}
         description="Review hasil matching otomatis, lakukan penyesuaian manual, dan berikan persetujuan akhir untuk konversi SKS."
       >
         <Link href="/kaprodi/validasi">
@@ -115,7 +113,7 @@ export default function KaprodiDashboard() {
                             {p.status}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">Asal: {p.asal_kampus || '-'} • {p.asal_prodi || '-'}</p>
+                        <p className="text-xs text-gray-500 font-medium">Asal: {p.asal_kampus || '-'} | {p.asal_prodi || '-'}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right hidden sm:block">
@@ -134,25 +132,22 @@ export default function KaprodiDashboard() {
           </Card>
         </div>
 
-        {/* Signature Status */}
+        {/* Verification Status */}
         <div className="space-y-6">
           <Card className="bg-white border-blue-900/10">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-900">
-                <Signature size={24} weight="bold" />
+                <QrCode size={24} weight="bold" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Tanda Tangan Digital</h3>
+              <h3 className="text-lg font-bold text-gray-900">Pengesahan QR</h3>
             </div>
             
-            <div className="aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-6 text-center">
-              <p className="text-sm text-gray-400 font-medium mb-4">
-                {data?.has_signature 
-                  ? "Tanda tangan Anda telah aktif dan akan disematkan pada setiap Berita Acara." 
-                  : "Anda belum mengunggah tanda tangan digital."}
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 text-center">
+              <p className="text-sm text-gray-500 font-medium">
+                Berita Acara yang Anda setujui akan memuat QR verifikasi otomatis atas nama:
               </p>
-              <Link href="/kaprodi/tanda-tangan">
-                <Button variant="secondary" className="text-xs">Kelola Tanda Tangan</Button>
-              </Link>
+              <p className="mt-3 text-sm font-bold text-gray-900">{data?.prodi?.[0]?.nama_prodi || 'Program studi belum ditetapkan'}</p>
+              <p className="mt-2 text-xs text-gray-400">Tidak diperlukan unggahan gambar tanda tangan.</p>
             </div>
           </Card>
 
@@ -163,7 +158,7 @@ export default function KaprodiDashboard() {
             </p>
             <div className="p-3 bg-white/10 rounded-xl border border-white/10">
               <p className="text-[11px] font-bold text-yellow uppercase mb-1">Tips:</p>
-              <p className="text-[11px] text-blue-100 font-medium italic">"Gunakan fitur override untuk menyesuaikan SKS yang diakui secara manual."</p>
+              <p className="text-[11px] text-blue-100 font-medium italic">Gunakan fitur override untuk menyesuaikan SKS yang diakui secara manual.</p>
             </div>
           </Card>
         </div>

@@ -5,7 +5,8 @@ import {
   SquaresFour, 
   ListBullets, 
   BookOpen, 
-  Books
+  Books,
+  Scales
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -24,6 +25,7 @@ export default function AkademikLayout({
     { label: 'Antrean', href: '/akademik/antrean', icon: ListBullets },
     { label: 'Kurikulum', href: '/akademik/kurikulum', icon: Books },
     { label: 'Sinonim', href: '/akademik/kamus-sinonim', icon: BookOpen },
+    { label: 'Evaluasi Ulang', href: '/akademik/appeals', icon: Scales },
   ];
 
   if (!isAuthorized) {
@@ -41,7 +43,7 @@ export default function AkademikLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="akademik" navItems={navItems} />
-      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
+      <main id="main-content" className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

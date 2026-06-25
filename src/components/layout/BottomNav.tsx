@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   label: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ size?: number; weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone' }>;
 }
 
 interface BottomNavProps {

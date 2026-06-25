@@ -2,18 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { 
   SignOut, 
   ShieldCheck
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { Role } from '@/lib/types';
+import api from '@/lib/api';
+import { NotificationCenter } from '@/components/layout/NotificationCenter';
 
 interface NavItem {
   label: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
 interface TopNavProps {
@@ -23,13 +25,12 @@ interface TopNavProps {
 
 export const TopNav = ({ role, navItems }: TopNavProps) => {
   const pathname = usePathname();
-  const router = useRouter();
   
   const userStr = typeof window !== 'undefined' ? localStorage.getItem('konverpro_user') : null;
   const user = userStr ? JSON.parse(userStr) : null;
 
-  const handleLogout = () => {
-    localStorage.removeItem('konverpro_token');
+  const handleLogout = async () => {
+    await api.post('/api/auth/logout').catch(() => {});
     localStorage.removeItem('konverpro_user');
     window.location.href = '/';
   };
@@ -78,6 +79,8 @@ export const TopNav = ({ role, navItems }: TopNavProps) => {
           </div>
 
           <div className="w-px h-8 bg-white/10 mx-2 hidden sm:block" />
+
+          <NotificationCenter />
 
           <button 
             onClick={handleLogout}

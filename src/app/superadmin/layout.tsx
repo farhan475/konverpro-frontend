@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { 
-  SquaresFour, 
-  UsersThree, 
-  Buildings, 
-  Gear, 
-  Note, 
+import {
+  ArrowsLeftRight,
   BookOpen,
-  ChartBar
+  Buildings,
+  ChartBar,
+  Gear,
+  Note,
+  SquaresFour,
+  UsersThree,
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -27,6 +28,7 @@ export default function SuperadminLayout({
     { label: 'Users', href: '/superadmin/users', icon: UsersThree },
     { label: 'Prodi', href: '/superadmin/prodi', icon: Buildings },
     { label: 'Sinonim', href: '/superadmin/kamus-sinonim', icon: BookOpen },
+    { label: 'Ekuivalensi', href: '/superadmin/equivalencies', icon: ArrowsLeftRight },
     { label: 'Config', href: '/superadmin/config', icon: Gear },
     { label: 'Audit', href: '/superadmin/audit', icon: Note },
     { label: 'Laporan', href: '/superadmin/laporan', icon: ChartBar },
@@ -52,7 +54,7 @@ export default function SuperadminLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="superadmin" navItems={navItems} />
-      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
+      <main id="main-content" className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

@@ -1,35 +1,38 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@/lib/types';
 import api from '@/lib/api';
 
 interface UseUserReturn {
   user: User | null;
   isLoading: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
 export const useUser = (): UseUserReturn => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
-  const loadUser = useCallback(() => {
+  const loadUser = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('konverpro_user');
-      const token = localStorage.getItem('konverpro_token');
 
-      if (userStr && userStr !== 'undefined' && token) {
-        const parsed = JSON.parse(userStr) as User;
-        setUser(parsed);
+      if (userStr && userStr !== 'undefined') {
+        setUser(JSON.parse(userStr) as User);
+      }
+
+      const { data } = await api.get('/api/auth/me');
+      if (data.success && data.data) {
+        localStorage.setItem('konverpro_user', JSON.stringify(data.data));
+        setUser(data.data as User);
       } else {
         setUser(null);
       }
     } catch {
       setUser(null);
+      localStorage.removeItem('konverpro_user');
     } finally {
       setIsLoading(false);
     }
@@ -39,10 +42,8 @@ export const useUser = (): UseUserReturn => {
     loadUser();
   }, [loadUser]);
 
-  const logout = useCallback(() => {
-    // Fire-and-forget API call
-    api.post('/api/auth/logout').catch(() => {});
-    localStorage.removeItem('konverpro_token');
+  const logout = useCallback(async () => {
+    await api.post('/api/auth/logout').catch(() => {});
     localStorage.removeItem('konverpro_user');
     setUser(null);
     window.location.href = '/';
@@ -56,7 +57,7 @@ export const useUser = (): UseUserReturn => {
         setUser(data.data as User);
       }
     } catch {
-      // Silent fail — user data stays as-is
+      // Keep the current user data if a background refresh fails.
     }
   }, []);
 

@@ -3,37 +3,39 @@
 import React, { useState, useEffect } from 'react';
 import { 
   MagnifyingGlass, 
-  Funnel, 
   ArrowRight, 
   Clock, 
-  CheckCircle, 
-  HourglassHigh, 
   ListBullets,
   ArrowClockwise,
-  MagicWand,
   Eye
 } from '@phosphor-icons/react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import api from '@/lib/api';
-import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
+import { ApiResponse, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
+import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function AntreanAkademikPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [stats, setStats] = useState({ baru: 0, ai: 0, review: 0, total: 0 });
 
-  const fetchAntrean = async () => {
+  const fetchAntrean = async (search = searchTerm, status = statusFilter) => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/akademik/antrean');
+      const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/akademik/antrean', {
+        params: {
+          ...(search.trim() ? { search: search.trim() } : {}),
+          ...(status ? { status } : {}),
+        },
+      });
       if (data.success) {
         setPendaftar(data.data);
         
@@ -43,7 +45,7 @@ export default function AntreanAkademikPage() {
         const review = data.data.filter(p => p.status === 'Review Akademik').length;
         setStats({ baru, ai, review, total: data.data.length });
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data antrean');
     } finally {
       setLoading(false);
@@ -51,25 +53,13 @@ export default function AntreanAkademikPage() {
   };
 
   useEffect(() => {
-    fetchAntrean();
-  }, []);
+    const timer = window.setTimeout(() => {
+      fetchAntrean(searchTerm, statusFilter);
+    }, 300);
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      case 'Review Akademik': return 'info';
-      default: return 'neutral';
-    }
-  };
-
-  const filteredPendaftar = pendaftar.filter(p => 
-    p.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    return () => window.clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, statusFilter]);
 
   return (
     <div>
@@ -79,7 +69,7 @@ export default function AntreanAkademikPage() {
       >
         <Button 
           variant="secondary" 
-          onClick={fetchAntrean} 
+          onClick={() => fetchAntrean()}
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
           <ArrowClockwise size={20} weight="bold" className={loading ? 'animate-spin' : ''} /> Perbarui Data
@@ -128,11 +118,18 @@ export default function AntreanAkademikPage() {
             />
             <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" className="px-4 text-xs font-bold uppercase tracking-widest">
-              <Funnel size={16} /> Filter Prodi
-            </Button>
-          </div>
+          <select
+            aria-label="Filter status antrean"
+            className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-700/10"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="">Semua status</option>
+            <option value="Baru">Baru</option>
+            <option value="AI Processing">AI Processing</option>
+            <option value="Review Akademik">Review Akademik</option>
+            <option value="Revisi">Revisi</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -149,10 +146,10 @@ export default function AntreanAkademikPage() {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr><td colSpan={5} className="py-12 text-center text-gray-400">Memuat antrean...</td></tr>
-              ) : filteredPendaftar.length === 0 ? (
+              ) : pendaftar.length === 0 ? (
                 <tr><td colSpan={5} className="py-16 text-center text-gray-400 italic font-medium">Tidak ada permohonan dalam antrean.</td></tr>
               ) : (
-                filteredPendaftar.map((p) => (
+                pendaftar.map((p) => (
                   <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
                     <td className="py-5 px-4">
                       <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
@@ -166,7 +163,7 @@ export default function AntreanAkademikPage() {
                       <p className="text-[11px] text-gray-400 font-medium">{p.asal_prodi || '-'}</p>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusVariant(p.status)}>
+                      <Badge variant={getStatusBadgeVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>

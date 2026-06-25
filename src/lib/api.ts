@@ -1,21 +1,20 @@
 import axios from 'axios';
 
+const defaultBaseURL = typeof window !== 'undefined'
+  ? `${window.location.protocol}//${window.location.hostname}:8000/`
+  : 'http://localhost:8000/';
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || defaultBaseURL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Interceptor to add auth token
+// Auth token is stored as an httpOnly cookie by the Laravel API.
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('konverpro_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -27,9 +26,15 @@ api.interceptors.response.use((response) => {
 }, (error) => {
   if (error.response?.status === 401) {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('konverpro_token');
       localStorage.removeItem('konverpro_user');
-      window.location.href = '/';
+
+      const requestUrl = error.config?.url || '';
+      const isLoginPage = window.location.pathname === '/';
+      const isLoginAttempt = requestUrl.includes('/api/auth/login');
+
+      if (!isLoginPage && !isLoginAttempt) {
+        window.location.href = '/';
+      }
     }
   }
   return Promise.reject(error);

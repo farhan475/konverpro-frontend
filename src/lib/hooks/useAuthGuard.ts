@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
-import { Role } from '@/lib/types';
+import { Role, User } from '@/lib/types';
+import api from '@/lib/api';
 
 export const useAuthGuard = (allowedRoles: Role[]) => {
   const router = useRouter();
@@ -15,53 +16,61 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
   const rolesString = JSON.stringify(allowedRoles);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('konverpro_user');
-    const token = localStorage.getItem('konverpro_token');
+    let isMounted = true;
 
-    if (!userStr || !token || userStr === 'undefined') {
-      if (pathname !== '/' && !toastShown.current) {
-        toast.error('Sesi berakhir. Silakan login kembali.');
-        toastShown.current = true;
-        router.push('/');
-      }
-      return;
-    }
+    const verify = async () => {
+      let user: User | null = null;
+      const userStr = localStorage.getItem('konverpro_user');
 
-    try {
-      const user = JSON.parse(userStr);
-      
-      if (!user || !user.role) {
-        throw new Error('Invalid user data');
+      if (userStr && userStr !== 'undefined') {
+        try {
+          user = JSON.parse(userStr) as User;
+        } catch {
+          user = null;
+        }
       }
 
-      const role = user.role as Role;
+      try {
+        const { data } = await api.get('/api/auth/me');
+        if (data.success && data.data) {
+          user = data.data as User;
+          localStorage.setItem('konverpro_user', JSON.stringify(user));
+        }
+      } catch {
+        user = null;
+      }
 
-      if (!allowedRoles.includes(role)) {
+      if (!isMounted) return;
+
+      if (!user?.role) {
+        localStorage.removeItem('konverpro_user');
+        if (pathname !== '/' && !toastShown.current) {
+          toast.error('Sesi berakhir. Silakan login kembali.');
+          toastShown.current = true;
+          router.push('/');
+        }
+        return;
+      }
+
+      const allowedRoleList = JSON.parse(rolesString) as Role[];
+      if (!allowedRoleList.includes(user.role)) {
         if (!toastShown.current) {
           toast.error('Anda tidak memiliki akses ke halaman ini.');
           toastShown.current = true;
         }
-        
-        // Use a small delay to avoid redirect loops during render
-        const timeout = setTimeout(() => {
-          const target = role.replace('_', '-');
-          router.push(`/${target}`);
-        }, 100);
-        
-        return () => clearTimeout(timeout);
-      } else {
-        setIsAuthorized(true);
+
+        router.push(`/${user.role}`);
+        return;
       }
-    } catch (error) {
-      console.error('Auth Guard Error:', error);
-      localStorage.removeItem('konverpro_user');
-      localStorage.removeItem('konverpro_token');
-      if (pathname !== '/' && !toastShown.current) {
-        toast.error('Terjadi kesalahan sesi. Silakan login kembali.');
-        toastShown.current = true;
-        router.push('/');
-      }
-    }
+
+      setIsAuthorized(true);
+    };
+
+    verify();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router, pathname, rolesString]);
 
   return isAuthorized;

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Gear, 
   MagicWand, 
   Envelope, 
   WhatsappLogo, 
@@ -17,12 +16,6 @@ import { Input } from '@/components/ui/Input';
 import api from '@/lib/api';
 import { ApiResponse } from '@/lib/types';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-
-interface ConfigItem {
-  setting_key: string;
-  setting_value: string;
-}
 
 export default function ConfigPage() {
   const [configs, setConfigs] = useState<Record<string, string>>({});
@@ -36,7 +29,7 @@ export default function ConfigPage() {
       if (data.success) {
         setConfigs(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil konfigurasi');
     } finally {
       setLoading(false);
@@ -58,7 +51,7 @@ export default function ConfigPage() {
       if (data.success) {
         toast.success('Konfigurasi berhasil disimpan');
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal menyimpan konfigurasi');
     } finally {
       setIsSaving(false);
@@ -80,7 +73,7 @@ export default function ConfigPage() {
       icon: MagicWand,
       fields: [
         { key: 'sumopod_api_key', label: 'API Key', placeholder: 'sk-xxxx', type: 'password' },
-        { key: 'sumopod_base_url', label: 'Base URL', placeholder: 'https://api.openai.com/v1' },
+        { key: 'sumopod_base_url', label: 'Base URL', placeholder: 'https://api.sumopod.com/v1' },
         { key: 'sumopod_model', label: 'Model Name', placeholder: 'gpt-4o-mini' },
         { key: 'fuzzy_threshold_auto', label: 'Threshold Fuzzy Auto (%)', placeholder: '80', type: 'number' },
         { key: 'fuzzy_threshold_sumopod', label: 'Threshold AI Review (%)', placeholder: '50', type: 'number' },
@@ -103,7 +96,7 @@ export default function ConfigPage() {
         { key: 'smtp_host', label: 'SMTP Host', placeholder: 'smtp.gmail.com' },
         { key: 'smtp_port', label: 'SMTP Port', placeholder: '587' },
         { key: 'smtp_username', label: 'SMTP Username', placeholder: 'noreply@unsia.ac.id' },
-        { key: 'smtp_password', label: 'SMTP Password', placeholder: '••••••••', type: 'password' },
+        { key: 'smtp_password', label: 'SMTP Password', placeholder: '********', type: 'password' },
         { key: 'smtp_from_name', label: 'Sender Name', placeholder: 'KonverPro UNSIA' },
         { key: 'notif_email_aktif', label: 'Aktifkan Notifikasi Email', type: 'select', options: [{v: 'true', l: 'Ya'}, {v: 'false', l: 'Tidak'}] },
       ]

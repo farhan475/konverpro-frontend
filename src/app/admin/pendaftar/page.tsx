@@ -1,14 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   MagnifyingGlass, 
-  ArrowRight,
   UserPlus,
   Funnel,
-  Clock,
-  CheckCircle,
-  XCircle,
   Eye
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -17,51 +13,45 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import api from '@/lib/api';
-import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
+import { ApiResponse, PaginationMeta, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function ListPendaftarPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
 
-  const fetchPendaftar = async () => {
+  const fetchPendaftar = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<Pendaftar[]>>(`/api/admin/pendaftar?page=${page}`);
+      const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/admin/pendaftar', {
+        params: {
+          page,
+          search: searchTerm || undefined,
+          status: statusFilter || undefined,
+        },
+      });
       if (data.success) {
         setPendaftar(data.data);
-        setMeta(data.meta);
+        setMeta(data.meta ?? null);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data pendaftar');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchTerm, statusFilter]);
 
   useEffect(() => {
-    fetchPendaftar();
-  }, [page]);
+    const timeout = window.setTimeout(fetchPendaftar, 350);
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
-
-  const filteredData = pendaftar.filter(p => 
-    p.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    return () => window.clearTimeout(timeout);
+  }, [fetchPendaftar]);
 
   return (
     <div>
@@ -82,14 +72,35 @@ export default function ListPendaftarPage() {
             <Input 
               placeholder="Cari nama atau NIM asal..." 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="pl-11"
             />
             <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
-          <Button variant="secondary" className="px-4 text-xs">
-            <Funnel size={16} /> Filter Status
-          </Button>
+          <div className="relative">
+            <Funnel size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <select
+              aria-label="Filter status"
+              value={statusFilter}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setPage(1);
+              }}
+              className="h-10 pl-9 pr-8 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-700/10"
+            >
+              <option value="">Semua Status</option>
+              <option value="Baru">Baru</option>
+              <option value="AI Processing">AI Processing</option>
+              <option value="Review Akademik">Review Akademik</option>
+              <option value="Pending Kaprodi">Pending Kaprodi</option>
+              <option value="Revisi">Revisi</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -106,10 +117,10 @@ export default function ListPendaftarPage() {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr><td colSpan={5} className="py-12 text-center text-gray-400">Memuat data...</td></tr>
-              ) : filteredData.length === 0 ? (
+              ) : pendaftar.length === 0 ? (
                 <tr><td colSpan={5} className="py-16 text-center text-gray-400 italic">Belum ada data pendaftar.</td></tr>
               ) : (
-                filteredData.map((p) => (
+                pendaftar.map((p) => (
                   <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
                     <td className="py-5 px-4">
                       <p className="font-bold text-gray-900">{p.nama_lengkap}</p>
@@ -123,7 +134,7 @@ export default function ListPendaftarPage() {
                       <Badge variant="neutral" className="bg-gray-50">{p.prodi?.nama_prodi || '-'}</Badge>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusVariant(p.status)}>
+                      <Badge variant={getStatusBadgeVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>
@@ -145,7 +156,7 @@ export default function ListPendaftarPage() {
         {meta && meta.last_page > 1 && (
           <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
             <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">
-              Menampilkan {filteredData.length} dari {meta.total} data
+              Menampilkan {pendaftar.length} dari {meta.total} data
             </p>
             <div className="flex gap-2">
               <Button 

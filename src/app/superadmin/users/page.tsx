@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, 
   PencilSimple, 
   Trash, 
   MagnifyingGlass,
-  UserCirclePlus,
-  Funnel
+  UserCirclePlus
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -18,12 +16,12 @@ import { Modal } from '@/components/ui/Modal';
 import api from '@/lib/api';
 import { ApiResponse, User, Role } from '@/lib/types';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +43,7 @@ export default function UserManagementPage() {
       if (data.success) {
         setUsers(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data pengguna');
     } finally {
       setLoading(false);
@@ -102,8 +100,9 @@ export default function UserManagementPage() {
           fetchUsers();
         }
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal menyimpan data pengguna');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal menyimpan data pengguna');
     } finally {
       setIsSaving(false);
     }
@@ -118,15 +117,18 @@ export default function UserManagementPage() {
         toast.success('Pengguna berhasil dihapus');
         fetchUsers();
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal menghapus pengguna');
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch =
+      user.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesSearch && (roleFilter === 'all' || user.role === roleFilter);
+  });
 
   return (
     <div>
@@ -150,11 +152,18 @@ export default function UserManagementPage() {
             />
             <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" className="px-4 text-xs">
-              <Funnel size={16} /> Filter Role
-            </Button>
-          </div>
+          <select
+            aria-label="Filter role pengguna"
+            className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-700/10"
+            value={roleFilter}
+            onChange={(event) => setRoleFilter(event.target.value as Role | 'all')}
+          >
+            <option value="all">Semua role</option>
+            <option value="superadmin">Superadmin</option>
+            <option value="admin">Admin</option>
+            <option value="akademik">Akademik</option>
+            <option value="kaprodi">Kaprodi</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -289,7 +298,7 @@ export default function UserManagementPage() {
             <Input 
               label={editingUser ? "Ganti Password (Opsional)" : "Password"} 
               type="password" 
-              placeholder="••••••••" 
+              placeholder="********"
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               required={!editingUser}

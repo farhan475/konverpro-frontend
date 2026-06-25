@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import api from '@/lib/api';
+import { downloadPrivateFile } from '@/lib/download';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -68,8 +69,9 @@ export default function UploadPendaftarPage() {
         toast.success(`Berhasil mengunggah data ${data.data.length} mahasiswa`);
         router.push('/admin/pendaftar');
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal mengunggah data');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal mengunggah data');
     } finally {
       setIsUploading(false);
     }
@@ -79,18 +81,7 @@ export default function UploadPendaftarPage() {
     setIsDownloadingTemplate(true);
 
     try {
-      const response = await api.get('/api/admin/template/download', {
-        responseType: 'blob',
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'Template_Konversi_UNSIA.xlsx';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadPrivateFile('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
     } catch {
       toast.error('Gagal mengunduh template');
     } finally {

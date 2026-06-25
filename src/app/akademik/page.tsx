@@ -3,37 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { 
   ListBullets, 
-  Books, 
   Clock,
   Eye,
   MagicWand,
-  ArrowRight,
-  ChartBar
+  ArrowRight
 } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 import api from "@/lib/api";
-import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
+import { AkademikDashboardData, ApiResponse, Pendaftar } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function AkademikDashboard() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AkademikDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<any>>('/api/akademik/dashboard');
+      const { data } = await api.get<ApiResponse<AkademikDashboardData>>('/api/akademik/dashboard');
       if (data.success) {
         setData(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data dashboard');
     } finally {
       setLoading(false);
@@ -114,7 +110,7 @@ export default function AkademikDashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">{p.nama_lengkap}</p>
-                        <p className="text-[11px] text-gray-500">{p.prodi?.nama_prodi || '-'} • NIM: {p.nim_asal || '-'}</p>
+                        <p className="text-[11px] text-gray-500">{p.prodi?.nama_prodi || '-'} | NIM: {p.nim_asal || '-'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -161,7 +157,7 @@ export default function AkademikDashboard() {
                     <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full bg-yellow rounded-full transition-all duration-700" style={{ width: `${fuzzyTotal > 0 ? fuzzyAcc : 0}%` }}></div>
                     </div>
-                    <p className="text-[9px] text-blue-100/40 mt-1">{fuzzyTotal} pemetaan • Threshold: {data?.ai_performance?.fuzzy_threshold || 80}%</p>
+                    <p className="text-[9px] text-blue-100/40 mt-1">{fuzzyTotal} pemetaan | Threshold: {data?.ai_performance?.fuzzy_threshold || 80}%</p>
                   </div>
                   
                   <div>
@@ -172,7 +168,7 @@ export default function AkademikDashboard() {
                     <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full bg-green rounded-full transition-all duration-700" style={{ width: `${aiTotal > 0 ? aiAcc : 0}%` }}></div>
                     </div>
-                    <p className="text-[9px] text-blue-100/40 mt-1">{aiTotal} pemetaan • Threshold: {data?.ai_performance?.ai_threshold || 50}%</p>
+                    <p className="text-[9px] text-blue-100/40 mt-1">{aiTotal} pemetaan | Threshold: {data?.ai_performance?.ai_threshold || 50}%</p>
                   </div>
                 </div>
               );

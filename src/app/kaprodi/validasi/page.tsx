@@ -4,10 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   MagnifyingGlass, 
   ArrowRight,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Funnel,
   CheckSquareOffset
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -17,27 +13,34 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
+import { ApiResponse, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function ValidasiKaprodiPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   
   // Bulk Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
 
-  const fetchValidasi = async () => {
+  const fetchValidasi = async (search = searchTerm, status = statusFilter) => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/kaprodi/validasi');
+      const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/kaprodi/validasi', {
+        params: {
+          ...(search.trim() ? { search: search.trim() } : {}),
+          ...(status ? { status } : {}),
+        },
+      });
       if (data.success) {
         setPendaftar(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data validasi');
     } finally {
       setLoading(false);
@@ -45,26 +48,15 @@ export default function ValidasiKaprodiPage() {
   };
 
   useEffect(() => {
-    fetchValidasi();
-  }, []);
+    const timer = window.setTimeout(() => {
+      fetchValidasi(searchTerm, statusFilter);
+    }, 300);
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
+    return () => window.clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, statusFilter]);
 
-  const filteredData = pendaftar.filter(p => 
-    p.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const pendingItems = filteredData.filter(p => p.status === 'Pending Kaprodi');
+  const pendingItems = pendaftar.filter(p => p.status === 'Pending Kaprodi');
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -93,8 +85,9 @@ export default function ValidasiKaprodiPage() {
         setSelectedIds([]);
         fetchValidasi();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal melakukan persetujuan massal');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal melakukan persetujuan massal');
     } finally {
       setIsBulkApproving(false);
     }
@@ -128,9 +121,21 @@ export default function ValidasiKaprodiPage() {
                 <CheckSquareOffset size={18} weight="bold" /> Approve ({selectedIds.length})
               </Button>
             )}
-            <Button variant="secondary" className="px-4 text-xs font-bold uppercase tracking-widest">
-              <Funnel size={16} /> Filter Status
-            </Button>
+            <select
+              aria-label="Filter status validasi"
+              className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-700/10"
+              value={statusFilter}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setSelectedIds([]);
+              }}
+            >
+              <option value="">Semua status</option>
+              <option value="Pending Kaprodi">Pending Kaprodi</option>
+              <option value="Revisi">Revisi</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
           </div>
         </div>
 
@@ -157,10 +162,10 @@ export default function ValidasiKaprodiPage() {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr><td colSpan={6} className="py-12 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Antrean...</td></tr>
-              ) : filteredData.length === 0 ? (
+              ) : pendaftar.length === 0 ? (
                 <tr><td colSpan={6} className="py-16 text-center text-gray-400 italic font-medium">Belum ada permohonan yang perlu divalidasi.</td></tr>
               ) : (
-                filteredData.map((p) => (
+                pendaftar.map((p) => (
                   <tr key={p.id} className={cn(
                     "group hover:bg-gray-50/50 transition-colors",
                     selectedIds.includes(p.id) && "bg-blue-50/50"
@@ -186,7 +191,7 @@ export default function ValidasiKaprodiPage() {
                       <span className="font-bold text-blue-900">{p.total_sks_diakui || 0} SKS</span>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusVariant(p.status)}>
+                      <Badge variant={getStatusBadgeVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>

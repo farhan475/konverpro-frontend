@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, 
   PencilSimple, 
   Trash, 
   MagnifyingGlass,
@@ -52,7 +51,7 @@ export default function ProdiManagementPage() {
     setLoading(true);
     try {
       const [prodiRes, userRes] = await Promise.all([
-        api.get<ApiResponse<Prodi[]>>('/api/referensi/prodi'),
+        api.get<ApiResponse<Prodi[]>>('/api/superadmin/prodi'),
         api.get<ApiResponse<UserType[]>>('/api/superadmin/users') 
       ]);
       
@@ -63,7 +62,7 @@ export default function ProdiManagementPage() {
       if (userRes.data.success) {
         setKaprodis(userRes.data.data.filter(u => u.role === 'kaprodi'));
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data program studi');
     } finally {
       setLoading(false);
@@ -108,7 +107,7 @@ export default function ProdiManagementPage() {
           metode_pengakuan: data.data.metode_pengakuan || 'direct'
         });
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil pengaturan prodi');
     }
   };
@@ -132,8 +131,9 @@ export default function ProdiManagementPage() {
           fetchData();
         }
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal menyimpan data program studi');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal menyimpan data program studi');
     } finally {
       setIsSaving(false);
     }
@@ -148,7 +148,7 @@ export default function ProdiManagementPage() {
         toast.success('Pengaturan prodi berhasil disimpan');
         setIsSettingsModalOpen(false);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal menyimpan pengaturan prodi');
     } finally {
       setIsSavingSettings(false);
@@ -164,7 +164,7 @@ export default function ProdiManagementPage() {
         toast.success('Program studi berhasil dihapus');
         fetchData();
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal menghapus program studi');
     }
   };
@@ -307,7 +307,7 @@ export default function ProdiManagementPage() {
               <select 
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-blue-700 focus:bg-white focus:ring-4 focus:ring-blue-700/10 transition-all"
                 value={formData.jenjang}
-                onChange={(e) => setFormData({...formData, jenjang: e.target.value as any})}
+                onChange={(e) => setFormData({...formData, jenjang: e.target.value as Prodi['jenjang']})}
               >
                 <option value="D3">D3</option>
                 <option value="D4">D4</option>

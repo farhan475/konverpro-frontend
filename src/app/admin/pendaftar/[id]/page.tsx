@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowLeft, 
   User, 
   Table, 
-  Clock, 
   CheckCircle, 
-  XCircle,
   FileXls,
   FilePdf,
-  Info
+  Info,
+  LinkSimple
 } from '@phosphor-icons/react';
 import { useRouter, useParams } from 'next/navigation';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -18,8 +17,10 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import api from '@/lib/api';
-import { ApiResponse, StatusPendaftar } from '@/lib/types';
+import { downloadPrivateFile } from '@/lib/download';
+import { ApiResponse, HasilKonversi, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
+import { getStatusBadgeVariant } from '@/lib/status';
 import { cn } from '@/lib/utils';
 
 export default function AdminDetailPendaftarPage() {
@@ -27,40 +28,32 @@ export default function AdminDetailPendaftarPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [pendaftar, setPendaftar] = useState<any>(null);
+  const [pendaftar, setPendaftar] = useState<Pendaftar | null>(null);
+  const [portalUrl, setPortalUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<any>>(`/api/admin/pendaftar/${id}`);
+      const { data } = await api.get<ApiResponse<{ pendaftar: Pendaftar; portal_url: string }>>(`/api/admin/pendaftar/${id}`);
       if (data.success) {
-        setPendaftar(data.data);
+        setPendaftar(data.data.pendaftar);
+        setPortalUrl(data.data.portal_url);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil detail pendaftar');
       router.push('/admin/pendaftar');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
   useEffect(() => {
     if (id) fetchDetail();
-  }, [id]);
+  }, [fetchDetail, id]);
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Detail...</div>;
-
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
+  if (!pendaftar) return null;
 
   return (
     <div>
@@ -85,7 +78,7 @@ export default function AdminDetailPendaftarPage() {
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status Permohonan</p>
                 <div className="flex items-center gap-3">
-                  <Badge variant={getStatusVariant(pendaftar.status)} className="text-sm px-4 py-1">
+                  <Badge variant={getStatusBadgeVariant(pendaftar.status)} className="text-sm px-4 py-1">
                     {pendaftar.status}
                   </Badge>
                   {pendaftar.status === 'Approved' && (
@@ -97,7 +90,7 @@ export default function AdminDetailPendaftarPage() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Terakhir Diupdate</p>
-                <p className="text-sm font-bold text-gray-900">{new Date(pendaftar.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="text-sm font-bold text-gray-900">{pendaftar.updated_at ? new Date(pendaftar.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
               </div>
             </div>
 
@@ -106,7 +99,7 @@ export default function AdminDetailPendaftarPage() {
                 <p className="text-[10px] font-bold text-orange uppercase mb-1 flex items-center gap-2">
                   <Info size={16} /> Catatan Revisi / Penolakan:
                 </p>
-                <p className="text-sm text-orange-900 font-medium italic">"{pendaftar.catatan_revisi}"</p>
+                <p className="text-sm text-orange-900 font-medium italic">{pendaftar.catatan_revisi}</p>
               </div>
             )}
           </Card>
@@ -167,7 +160,7 @@ export default function AdminDetailPendaftarPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {pendaftar.hasil_konversi.map((item: any) => (
+                    {pendaftar.hasil_konversi.map((item: HasilKonversi) => (
                       <tr key={item.id}>
                         <td className="py-4 px-2">
                           <p className="font-bold text-gray-900">{item.transkrip_asal?.nama_mk_asal}</p>
@@ -204,15 +197,7 @@ export default function AdminDetailPendaftarPage() {
                 className="w-full justify-start text-xs font-bold bg-white"
                 onClick={async () => {
                   try {
-                    const response = await api.get(`/api/files/excel/${id}`, { responseType: 'blob' });
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                    window.URL.revokeObjectURL(url);
+                    await downloadPrivateFile(`/api/files/excel/${id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
                   } catch {
                     toast.error('Gagal mengunduh file Excel');
                   }
@@ -226,15 +211,7 @@ export default function AdminDetailPendaftarPage() {
                   className="w-full justify-start text-xs font-bold bg-white"
                   onClick={async () => {
                     try {
-                      const response = await api.get(`/api/files/pdf/${id}`, { responseType: 'blob' });
-                      const url = window.URL.createObjectURL(new Blob([response.data]));
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.pdf`);
-                      document.body.appendChild(link);
-                      link.click();
-                      link.remove();
-                      window.URL.revokeObjectURL(url);
+                      await downloadPrivateFile(`/api/files/pdf/${id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
                     } catch {
                       toast.error('Gagal mengunduh file PDF');
                     }
@@ -244,6 +221,21 @@ export default function AdminDetailPendaftarPage() {
                 </Button>
               )}
             </div>
+          </Card>
+
+          <Card>
+            <h4 className="text-sm font-bold text-gray-900">Portal mahasiswa</h4>
+            <p className="mt-2 text-xs text-gray-500">Tautan privat untuk memantau status, mengunduh BA, dan mengajukan evaluasi ulang.</p>
+            <Button
+              variant="secondary"
+              className="mt-4 w-full"
+              onClick={async () => {
+                await navigator.clipboard.writeText(portalUrl);
+                toast.success('Tautan portal disalin');
+              }}
+            >
+              <LinkSimple size={18} /> Salin tautan portal
+            </Button>
           </Card>
 
           {pendaftar.status === 'Approved' && (

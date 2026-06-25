@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary — Biru institusi */
+  /* Primary - Biru institusi */
   --blue-900: #031f37;
   --blue-700: #094E8B;
   --blue-100: #dbeafe;
   --blue-50:  #eff6ff;
 
-  /* Accent — Kuning energik */
+  /* Accent - Kuning energik */
   --yellow:   #FDD824;
   --yellow-bg:#fffbeb;
 
-  /* Neutral — Putih & Abu */
+  /* Neutral - Putih & Abu */
   --white:    #ffffff;
   --gray-50:  #F8FAFC;
   --gray-100: #f1f5f9;
   --gray-200: #e2e8f0;
-  --gray-400: #94a3b8;
+  --gray-400: #64748b;
   --gray-600: #475569;
   --gray-900: #0f172a;
 
@@ -63,6 +63,22 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  background: var(--yellow);
+  color: var(--blue-900);
+  padding: 10px 14px;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+.skip-link:focus {
+  top: 12px;
 }
 
 @layer components {

@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Note, 
   Clock, 
   MagnifyingGlass, 
   ShieldCheck,
-  Funnel,
   Export
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -17,7 +15,8 @@ import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/shared/DataTable';
 import { EmptyState } from '@/components/shared/EmptyState';
 import api from '@/lib/api';
-import { ApiResponse } from '@/lib/types';
+import { downloadPrivateFile } from '@/lib/download';
+import { ApiResponse, PaginationMeta } from '@/lib/types';
 import { toast } from 'sonner';
 
 interface AuditLog {
@@ -35,9 +34,10 @@ export default function AuditSystemPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get<ApiResponse<AuditLog[]>>(`/api/superadmin/audit`, {
@@ -49,14 +49,14 @@ export default function AuditSystemPage() {
       });
       if (data.success) {
         setLogs(data.data);
-        setMeta(data.meta);
+        setMeta(data.meta ?? null);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data audit log');
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionFilter, page, searchTerm]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -64,7 +64,25 @@ export default function AuditSystemPage() {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [page, searchTerm, actionFilter]);
+  }, [fetchLogs]);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const params = new URLSearchParams({ format: 'csv' });
+      if (searchTerm) params.set('search', searchTerm);
+      if (actionFilter) params.set('action', actionFilter);
+
+      await downloadPrivateFile(
+        `/api/superadmin/audit?${params.toString()}`,
+        'audit_log_konverpro.csv',
+      );
+    } catch {
+      toast.error('Gagal mengunduh audit log');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const columns = [
     {
@@ -106,7 +124,12 @@ export default function AuditSystemPage() {
         title="Audit Log Sistem" 
         description="Rekaman seluruh aktivitas penting yang dilakukan oleh pengguna di dalam sistem KonverPro UNSIA."
       >
-        <Button variant="secondary" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+        <Button
+          variant="secondary"
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          onClick={handleExport}
+          isLoading={isExporting}
+        >
           <Export size={18} weight="bold" /> Export Log
         </Button>
       </PageHeader>

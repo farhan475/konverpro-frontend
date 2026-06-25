@@ -21,20 +21,26 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const userStr = localStorage.getItem("konverpro_user");
-    const token = localStorage.getItem("konverpro_token");
-
-    if (userStr && userStr !== "undefined" && token) {
+    const checkSession = async () => {
       try {
-        const user = JSON.parse(userStr);
-        if (user && user.role) {
+        const { data } = await api.get('/api/auth/me');
+        if (data.success && data.data?.role) {
+          localStorage.setItem("konverpro_user", JSON.stringify(data.data));
+          router.push(`/${data.data.role}`);
+          return;
+        }
+
+        const userStr = localStorage.getItem("konverpro_user");
+        if (userStr && userStr !== "undefined") {
+          const user = JSON.parse(userStr);
           router.push(`/${user.role}`);
         }
       } catch {
-        localStorage.removeItem("konverpro_token");
         localStorage.removeItem("konverpro_user");
       }
-    }
+    };
+
+    checkSession();
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -46,17 +52,12 @@ export default function LoginPage() {
       const { data } = await api.post("/api/auth/login", { email, password });
 
       if (data.success) {
-        localStorage.setItem("konverpro_token", data.data.access_token);
-        localStorage.setItem("konverpro_user", JSON.stringify(data.data.user));
-
-        const token = data.data.access_token || data.data.token;
         const user = data.data.user;
 
-        if (!token || !user?.role) {
+        if (!user?.role) {
           throw new Error("Respons login dari server tidak lengkap.");
         }
 
-        localStorage.setItem("konverpro_token", token);
         localStorage.setItem("konverpro_user", JSON.stringify(user));
 
         toast.success(`Selamat datang, ${user.nama_lengkap}!`);
@@ -67,10 +68,12 @@ export default function LoginPage() {
             "Login gagal. Periksa kembali email dan password Anda.",
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiMessage = (err as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message;
+      const errorMessage = (err as { message?: string }).message;
       setError(
-        err.response?.data?.message ||
-          err.message ||
+        apiMessage ||
+          errorMessage ||
           "Gagal menghubungi server. Pastikan backend Laravel aktif.",
       );
     } finally {
@@ -79,7 +82,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-blue-900 font-sans min-h-screen flex items-center justify-center p-4">
+    <main id="main-content" className="bg-blue-900 font-sans min-h-screen flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-8 md:p-10">
         <div className="text-center mb-10">
           <div className="w-12 h-12 bg-yellow rounded-xl flex items-center justify-center mb-4 text-blue-900 shadow-lg mx-auto">
@@ -94,7 +97,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-[11px] font-bold flex items-center gap-2 mb-8 animate-in fade-in zoom-in duration-300">
+          <div role="alert" className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-[11px] font-bold flex items-center gap-2 mb-8 animate-in fade-in zoom-in duration-300">
             <WarningCircle size={18} weight="bold" />
             {error}
           </div>
@@ -102,12 +105,13 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider ml-1">
+            <label htmlFor="email" className="text-[10px] font-bold uppercase text-gray-400 tracking-wider ml-1">
               Alamat Email
             </label>
             <div className="relative">
               <input
                 type="email"
+                id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -123,17 +127,18 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider ml-1">
+            <label htmlFor="password" className="text-[10px] font-bold uppercase text-gray-400 tracking-wider ml-1">
               Kata Sandi
             </label>
             <div className="relative">
               <input
                 type="password"
+                id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 pl-11 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 focus:ring-4 focus:ring-blue-900/5 focus:border-blue-900 focus:bg-white outline-none transition-all"
-                placeholder="••••••••"
+                placeholder="********"
               />
               <LockKey
                 size={18}
@@ -152,10 +157,10 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-12 text-center text-[9px] font-bold text-gray-300 uppercase tracking-widest">
+        <p className="mt-12 text-center text-[9px] font-bold text-gray-600 uppercase tracking-widest">
           &copy; 2026 Universitas Siber Asia
         </p>
       </div>
-    </div>
+    </main>
   );
 }

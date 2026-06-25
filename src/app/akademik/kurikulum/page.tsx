@@ -5,10 +5,7 @@ import {
   Plus, 
   PencilSimple, 
   Trash, 
-  MagnifyingGlass,
-  Books,
-  Funnel,
-  ArrowRight
+  MagnifyingGlass
 } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -41,7 +38,14 @@ export default function KurikulumManagementPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<KurikulumMk | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    id_prodi: string;
+    kode_mk: string;
+    nama_mk: string;
+    sks: number;
+    semester: number;
+    tipe_mk: 'Wajib' | 'Pilihan';
+  }>({
     id_prodi: '',
     kode_mk: '',
     nama_mk: '',
@@ -61,7 +65,7 @@ export default function KurikulumManagementPage() {
       
       if (mkRes.data.success) setItems(mkRes.data.data);
       if (prodiRes.data.success) setProdis(prodiRes.data.data);
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil data kurikulum');
     } finally {
       setLoading(false);
@@ -115,8 +119,9 @@ export default function KurikulumManagementPage() {
       }
       setIsModalOpen(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal menyimpan data');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal menyimpan data');
     } finally {
       setIsSaving(false);
     }
@@ -128,7 +133,7 @@ export default function KurikulumManagementPage() {
       await api.delete(`/api/akademik/kurikulum/${id}`);
       toast.success('Mata kuliah berhasil dihapus');
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error('Gagal menghapus data');
     }
   };
@@ -313,7 +318,7 @@ export default function KurikulumManagementPage() {
                     type="radio" 
                     className="w-4 h-4 text-blue-900 border-gray-300 focus:ring-blue-900"
                     checked={formData.tipe_mk === tipe}
-                    onChange={() => setFormData({...formData, tipe_mk: tipe as any})}
+                    onChange={() => setFormData({...formData, tipe_mk: tipe as 'Wajib' | 'Pilihan'})}
                   />
                   <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-900 transition-colors">{tipe}</span>
                 </label>

@@ -1,20 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowLeft, 
-  User, 
   Table, 
   CheckCircle, 
   XCircle, 
   Clock, 
-  PencilSimple,
-  FloppyDisk,
   Warning,
   Info,
-  MagicWand,
   ArrowRight,
-  FilePdf
+  FilePdf,
+  WhatsappLogo
 } from '@phosphor-icons/react';
 import { useRouter, useParams } from 'next/navigation';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -22,9 +19,9 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
 import api from '@/lib/api';
-import { ApiResponse, Prodi } from '@/lib/types';
+import { downloadPrivateFile } from '@/lib/download';
+import { ApiResponse, HasilKonversi, KurikulumMk, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -33,50 +30,51 @@ export default function DetailValidasiPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [pendaftar, setPendaftar] = useState<any>(null);
-  const [kurikulum, setKurikulum] = useState<any[]>([]);
+  const [pendaftar, setPendaftar] = useState<Pendaftar | null>(null);
+  const [kurikulum, setKurikulum] = useState<KurikulumMk[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Action state
   const [isApproving, setIsApproving] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isSendingBa, setIsSendingBa] = useState(false);
   const [catatan, setCatatan] = useState('');
   
   // Modal states
   const [isRevisiModalOpen, setIsRevisiModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
       const [detailRes, kurikulumRes] = await Promise.all([
-        api.get<ApiResponse<any>>(`/api/kaprodi/validasi/${id}`),
-        api.get<ApiResponse<any[]>>('/api/akademik/kurikulum') // Kaprodi can see kurikulum
+        api.get<ApiResponse<Pendaftar>>(`/api/kaprodi/validasi/${id}`),
+        api.get<ApiResponse<KurikulumMk[]>>('/api/akademik/kurikulum') // Kaprodi can see kurikulum
       ]);
       
       if (detailRes.data.success) setPendaftar(detailRes.data.data);
       if (kurikulumRes.data.success) setKurikulum(kurikulumRes.data.data);
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil detail validasi');
       router.push('/kaprodi/validasi');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
   useEffect(() => {
     if (id) fetchDetail();
-  }, [id]);
+  }, [fetchDetail, id]);
 
-  const handleUpdateHasil = async (hasilId: string, payload: any) => {
+  const handleUpdateHasil = async (hasilId: string, payload: Partial<Pick<HasilKonversi, 'id_mk_tujuan' | 'sks_diakui'>>) => {
     try {
-      const { data } = await api.put(`/api/kaprodi/hasil-konversi/${hasilId}`, payload);
+      const { data } = await api.put(`/api/kaprodi/validasi/${hasilId}`, payload);
       if (data.success) {
         toast.success('Berhasil memperbarui pemetaan');
         fetchDetail(); // Refresh data
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal memperbarui pemetaan');
     }
   };
@@ -90,7 +88,7 @@ export default function DetailValidasiPage() {
         toast.success('Permohonan berhasil disetujui');
         router.push('/kaprodi/validasi');
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal memberikan persetujuan');
     } finally {
       setIsApproving(false);
@@ -106,7 +104,7 @@ export default function DetailValidasiPage() {
         toast.success('Permohonan dikembalikan untuk revisi');
         router.push('/kaprodi/validasi');
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal memproses revisi');
     } finally {
       setIsRevising(false);
@@ -122,7 +120,7 @@ export default function DetailValidasiPage() {
         toast.success('Permohonan telah ditolak');
         router.push('/kaprodi/validasi');
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal memproses penolakan');
     } finally {
       setIsRejecting(false);
@@ -130,29 +128,64 @@ export default function DetailValidasiPage() {
   };
 
   const handleDownloadBa = async () => {
+    if (!pendaftar) return;
     try {
-      const response = await api.get(`/api/kaprodi/validasi/${id}/download-ba`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Berita_Acara_${pendaftar.nim_asal || pendaftar.nama_lengkap}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
+      await downloadPrivateFile(
+        `/api/kaprodi/validasi/${id}/download-ba`,
+        `Berita_Acara_${pendaftar.nim_asal || pendaftar.nama_lengkap}.pdf`,
+      );
+    } catch {
       toast.error('Gagal mengunduh Berita Acara');
     }
   };
 
-  if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Data Validasi...</div>;
+  const handleSendBaWhatsapp = async () => {
+    if (!pendaftar?.no_whatsapp) {
+      toast.error('Nomor WhatsApp mahasiswa belum tersedia');
+      return;
+    }
+    if (!confirm(`Kirim Berita Acara ke WhatsApp ${pendaftar.no_whatsapp}?`)) return;
 
-  const totalSksDiakui = pendaftar.hasil_konversi?.reduce((acc: number, curr: any) => acc + (curr.sks_diakui || 0), 0) || 0;
-  const totalSksKurikulum = pendaftar.prodi?.kurikulum_mk?.reduce((acc: number, curr: any) => acc + (curr.sks || 0), 0) || 0;
+    setIsSendingBa(true);
+    try {
+      const { data } = await api.post(`/api/kaprodi/validasi/${id}/send-ba-whatsapp`);
+      if (data.success) {
+        toast.success(data.message || 'Berita Acara dijadwalkan untuk dikirim');
+        fetchDetail();
+      }
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal menjadwalkan pengiriman Berita Acara');
+    } finally {
+      setIsSendingBa(false);
+    }
+  };
+
+  if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Data Validasi...</div>;
+  if (!pendaftar) return null;
+
+  const totalSksDiakui = pendaftar.hasil_konversi?.reduce((acc: number, curr: HasilKonversi) => acc + (curr.sks_diakui || 0), 0) || 0;
+  const totalSksKurikulum = pendaftar.prodi?.kurikulum_mk?.reduce((acc: number, curr: KurikulumMk) => acc + (curr.sks || 0), 0) || 0;
   const maxSksPersen = pendaftar.prodi?.pengaturan?.max_konversi_sks_persen || 70;
   const maxSksLimit = Math.floor((maxSksPersen / 100) * totalSksKurikulum);
   const isOverLimit = totalSksDiakui > maxSksLimit && totalSksKurikulum > 0;
+  const totalSksAsal = pendaftar.transkrip_asal?.reduce(
+    (total, item) => total + (item.sks_asal || 0),
+    0
+  ) || 0;
+  const totalSksBelumDiakui = pendaftar.hasil_konversi?.reduce((total, item) => {
+    const sksAsal = item.transkrip_asal?.sks_asal || 0;
+    const recognized = item.is_unmatched ? 0 : Math.min(sksAsal, item.sks_diakui || 0);
+    return total + Math.max(0, sksAsal - recognized);
+  }, 0) || 0;
+  const recognizedTargetIds = new Set(
+    pendaftar.hasil_konversi
+      ?.filter((item) => !item.is_unmatched && item.id_mk_tujuan)
+      .map((item) => item.id_mk_tujuan)
+  );
+  const totalSksKurikulumSisa = pendaftar.prodi?.kurikulum_mk
+    ?.filter((item) => !recognizedTargetIds.has(item.id))
+    .reduce((total, item) => total + item.sks, 0) || 0;
 
   return (
     <div>
@@ -172,7 +205,7 @@ export default function DetailValidasiPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-5">
                 <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-900 font-bold text-xl">
-                  {pendaftar.nama_lengkap.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase()}
+                  {pendaftar.nama_lengkap.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">{pendaftar.nama_lengkap}</h3>
@@ -204,6 +237,20 @@ export default function DetailValidasiPage() {
                 </p>
               </div>
             )}
+
+            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-gray-100 pt-5 sm:grid-cols-4">
+              {[
+                ['SKS Transkrip Asal', totalSksAsal],
+                ['SKS Diakui UNSIA', totalSksDiakui],
+                ['SKS Asal Belum Diakui', totalSksBelumDiakui],
+                ['Sisa SKS Kurikulum', totalSksKurikulumSisa],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">{label}</p>
+                  <p className="mt-1 text-xl font-bold text-blue-900">{value} SKS</p>
+                </div>
+              ))}
+            </div>
           </Card>
 
           {/* Tabel Konversi */}
@@ -229,7 +276,7 @@ export default function DetailValidasiPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {pendaftar.hasil_konversi?.map((item: any) => (
+                  {pendaftar.hasil_konversi?.map((item: HasilKonversi) => (
                     <tr key={item.id} className={cn("group hover:bg-gray-50/50 transition-colors", item.is_unmatched && "bg-red-50/30")}>
                       <td className="py-4 px-3">
                         <p className="font-bold text-gray-900">{item.transkrip_asal?.nama_mk_asal}</p>
@@ -290,12 +337,31 @@ export default function DetailValidasiPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-6">Keputusan Kaprodi</h3>
             <div className="space-y-3">
               {pendaftar.status === 'Approved' ? (
-                <Button 
-                  className="w-full py-4 bg-blue-900 text-white hover:bg-blue-800 shadow-lg shadow-blue-900/20"
-                  onClick={handleDownloadBa}
-                >
-                  <FilePdf size={20} weight="bold" /> Unduh Berita Acara
-                </Button>
+                <>
+                  <Button
+                    className="w-full py-4 bg-blue-900 text-white hover:bg-blue-800 shadow-lg shadow-blue-900/20"
+                    onClick={handleDownloadBa}
+                  >
+                    <FilePdf size={20} weight="bold" /> Unduh Berita Acara
+                  </Button>
+                  <Button
+                    className="w-full py-4 bg-green-600 text-white hover:bg-green-700"
+                    onClick={handleSendBaWhatsapp}
+                    isLoading={isSendingBa}
+                    disabled={!pendaftar.no_whatsapp}
+                    title={pendaftar.no_whatsapp ? 'Kirim BA ke WhatsApp mahasiswa' : 'Nomor WhatsApp belum tersedia'}
+                  >
+                    <WhatsappLogo size={20} weight="bold" /> Kirim ke WhatsApp
+                  </Button>
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-500">
+                    <p>Tujuan: <strong className="text-gray-700">{pendaftar.no_whatsapp || 'Belum tersedia'}</strong></p>
+                    <p className="mt-1">
+                      Terakhir dikirim: {pendaftar.ba_wa_sent_at
+                        ? new Date(pendaftar.ba_wa_sent_at).toLocaleString('id-ID')
+                        : 'Belum pernah'}
+                    </p>
+                  </div>
+                </>
               ) : (
                 <>
                   <Button 

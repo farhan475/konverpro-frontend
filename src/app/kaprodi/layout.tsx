@@ -4,8 +4,7 @@ import React from 'react';
 import { 
   SquaresFour, 
   CheckSquareOffset, 
-  ChartBar, 
-  Signature
+  ChartBar
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -23,7 +22,6 @@ export default function KaprodiLayout({
     { label: 'Dashboard', href: '/kaprodi', icon: SquaresFour },
     { label: 'Validasi', href: '/kaprodi/validasi', icon: CheckSquareOffset },
     { label: 'Laporan', href: '/kaprodi/laporan', icon: ChartBar },
-    { label: 'Signature', href: '/kaprodi/tanda-tangan', icon: Signature },
   ];
 
   if (!isAuthorized) {
@@ -41,7 +39,7 @@ export default function KaprodiLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="kaprodi" navItems={navItems} />
-      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
+      <main id="main-content" className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

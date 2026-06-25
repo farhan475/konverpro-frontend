@@ -4,8 +4,7 @@ import React from 'react';
 import { 
   SquaresFour, 
   UserPlus, 
-  Files, 
-  Table
+  Files
 } from '@phosphor-icons/react';
 import { TopNav } from '@/components/layout/TopNav';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -40,7 +39,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNav role="admin" navItems={navItems} />
-      <main className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
+      <main id="main-content" className="flex-1 pt-[60px] pb-20 lg:pb-12 px-4 lg:px-8 max-w-[1600px] mx-auto w-full">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

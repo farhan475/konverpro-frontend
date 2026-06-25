@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowLeft, 
   User, 
-  Buildings, 
   FileXls, 
   FilePdf,
   MagicWand, 
-  CheckCircle,
   ArrowRight,
-  Warning,
   Table,
   Info,
   PencilSimple,
@@ -24,30 +21,43 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import api from '@/lib/api';
-import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
+import { downloadPrivateFile } from '@/lib/download';
+import { ApiResponse, Pendaftar, Prodi, TranskripAsal } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+type EditTranskrip = Pick<TranskripAsal, 'id' | 'nama_mk_asal' | 'sks_asal' | 'nilai_huruf_asal'>;
+
+type EditForm = {
+  nama_lengkap: string;
+  nim_asal: string;
+  email: string;
+  no_whatsapp: string;
+  asal_kampus: string;
+  asal_prodi: string;
+  id_prodi: string;
+  transkrip: EditTranskrip[];
+};
 export default function DetailAntreanPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  const [pendaftar, setPendaftar] = useState<any>(null);
+  const [pendaftar, setPendaftar] = useState<Pendaftar | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<any>(null);
-  const [prodis, setProdis] = useState<any[]>([]);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [prodis, setProdis] = useState<Prodi[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<ApiResponse<any>>(`/api/akademik/antrean/${id}`);
+      const { data } = await api.get<ApiResponse<Pendaftar>>(`/api/akademik/antrean/${id}`);
       if (data.success) {
         setPendaftar(data.data);
         setEditForm({
@@ -58,7 +68,7 @@ export default function DetailAntreanPage() {
           asal_kampus: data.data.asal_kampus || '',
           asal_prodi: data.data.asal_prodi || '',
           id_prodi: data.data.id_prodi,
-          transkrip: data.data.transkrip_asal?.map((t: any) => ({
+          transkrip: data.data.transkrip_asal?.map((t: TranskripAsal) => ({
             id: t.id,
             nama_mk_asal: t.nama_mk_asal,
             sks_asal: t.sks_asal,
@@ -66,29 +76,36 @@ export default function DetailAntreanPage() {
           })) || [],
         });
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengambil detail pendaftar');
       router.push('/akademik/antrean');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
-  const fetchProdis = async () => {
+  const fetchProdis = useCallback(async () => {
     try {
-      const { data } = await api.get<ApiResponse<any[]>>('/api/referensi/prodi');
+      const { data } = await api.get<ApiResponse<Prodi[]>>('/api/referensi/prodi');
       if (data.success) setProdis(data.data);
-    } catch (error) {
+    } catch {
       console.error('Gagal mengambil data prodi');
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (id) {
       fetchDetail();
       fetchProdis();
     }
-  }, [id]);
+  }, [fetchDetail, fetchProdis, id]);
+
+  useEffect(() => {
+    if (pendaftar?.status !== 'AI Processing') return;
+
+    const interval = window.setInterval(fetchDetail, 3000);
+    return () => window.clearInterval(interval);
+  }, [fetchDetail, pendaftar?.status]);
 
   const handleProsesMatching = async () => {
     setIsProcessing(true);
@@ -98,8 +115,9 @@ export default function DetailAntreanPage() {
         toast.success('Proses matching AI berhasil dimulai');
         fetchDetail();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal memulai proses matching');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal memulai proses matching');
     } finally {
       setIsProcessing(false);
     }
@@ -113,8 +131,9 @@ export default function DetailAntreanPage() {
         toast.success('Hasil matching dikonfirmasi dan diteruskan ke Kaprodi.');
         router.push('/akademik/antrean');
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal mengkonfirmasi hasil matching');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal mengkonfirmasi hasil matching');
     } finally {
       setIsConfirming(false);
     }
@@ -129,20 +148,23 @@ export default function DetailAntreanPage() {
         setIsEditing(false);
         fetchDetail();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal memperbarui data');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal memperbarui data');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateTranskripField = (index: number, field: string, value: any) => {
+  const updateTranskripField = (index: number, field: keyof EditTranskrip, value: string | number) => {
+    if (!editForm) return;
     const newTranskrip = [...editForm.transkrip];
     newTranskrip[index] = { ...newTranskrip[index], [field]: value };
     setEditForm({ ...editForm, transkrip: newTranskrip });
   };
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Detail...</div>;
+  if (!pendaftar || !editForm) return null;
 
   return (
     <div>
@@ -275,7 +297,7 @@ export default function DetailAntreanPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {isEditing ? (
-                    editForm.transkrip?.map((item: any, i: number) => (
+                    editForm.transkrip?.map((item: EditTranskrip, i: number) => (
                       <tr key={i}>
                         <td className="py-2 px-2">
                           <Input 
@@ -302,7 +324,7 @@ export default function DetailAntreanPage() {
                       </tr>
                     ))
                   ) : (
-                    pendaftar.transkrip_asal?.map((item: any, i: number) => (
+                    pendaftar.transkrip_asal?.map((item: TranskripAsal, i: number) => (
                       <tr key={i}>
                         <td className="py-4 px-2 font-bold text-gray-700">{item.nama_mk_asal}</td>
                         <td className="py-4 px-2 text-center font-medium text-gray-600">{item.sks_asal}</td>
@@ -343,6 +365,13 @@ export default function DetailAntreanPage() {
                   Konfirmasi ke Kaprodi
                 </Button>
               </>
+            ) : pendaftar.status === 'AI Processing' ? (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-sm font-semibold text-white">Matching sedang diproses</p>
+                <p className="mt-2 text-xs leading-relaxed text-blue-100/70">
+                  Halaman ini diperbarui otomatis. Notifikasi akan muncul saat hasil siap direview.
+                </p>
+              </div>
             ) : (
               <>
                 <p className="text-blue-100/70 text-sm mb-8 leading-relaxed">
@@ -367,7 +396,7 @@ export default function DetailAntreanPage() {
                 <div className="flex gap-3">
                   <Info size={20} weight="bold" className="text-yellow shrink-0" />
                   <p className="text-[11px] text-blue-100/60 leading-relaxed italic">
-                    Proses ini memakan waktu 5-10 detik. Sistem akan mencocokkan setiap MK asal dengan kurikulum UNSIA.
+                    Matching dijalankan melalui antrean agar halaman tetap responsif. Hasil akan muncul setelah worker selesai.
                   </p>
                 </div>
               </div>
@@ -380,7 +409,13 @@ export default function DetailAntreanPage() {
               <Button 
                 variant="secondary" 
                 className="w-full justify-start text-xs font-bold bg-white"
-                onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/files/excel/${pendaftar.id}`)}
+                onClick={async () => {
+                  try {
+                    await downloadPrivateFile(`/api/files/excel/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
+                  } catch {
+                    toast.error('Gagal mengunduh file Excel');
+                  }
+                }}
               >
                 <FileXls size={18} weight="bold" className="text-green-600" /> Lihat Excel Original
               </Button>
@@ -388,7 +423,13 @@ export default function DetailAntreanPage() {
                 <Button 
                   variant="secondary" 
                   className="w-full justify-start text-xs font-bold bg-white"
-                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/files/pdf/${pendaftar.id}`)}
+                  onClick={async () => {
+                    try {
+                      await downloadPrivateFile(`/api/files/pdf/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
+                    } catch {
+                      toast.error('Gagal mengunduh file PDF');
+                    }
+                  }}
                 >
                   <FilePdf size={18} weight="bold" className="text-red-600" /> Lihat PDF Arsip
                 </Button>
