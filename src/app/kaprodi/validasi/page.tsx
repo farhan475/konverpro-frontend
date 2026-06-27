@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  MagnifyingGlass, 
+import {
+  MagnifyingGlass,
   ArrowRight,
   Clock,
   CheckCircle,
@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
@@ -25,7 +26,7 @@ export default function ValidasiKaprodiPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Bulk Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
@@ -48,18 +49,7 @@ export default function ValidasiKaprodiPage() {
     fetchValidasi();
   }, []);
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
-
-  const filteredData = pendaftar.filter(p => 
+  const filteredData = pendaftar.filter(p =>
     p.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -67,7 +57,7 @@ export default function ValidasiKaprodiPage() {
   const pendingItems = filteredData.filter(p => p.status === 'Pending Kaprodi');
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -82,7 +72,7 @@ export default function ValidasiKaprodiPage() {
 
   const handleBulkApprove = async () => {
     if (selectedIds.length === 0) return;
-    
+
     if (!confirm(`Apakah Anda yakin ingin menyetujui ${selectedIds.length} permohonan sekaligus?`)) return;
 
     setIsBulkApproving(true);
@@ -102,16 +92,16 @@ export default function ValidasiKaprodiPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Validasi Konversi SKS" 
+      <PageHeader
+        title="Validasi Konversi SKS"
         description="Review dan berikan persetujuan akhir pada permohonan konversi mahasiswa. Anda dapat melakukan penyesuaian manual jika diperlukan."
       />
 
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
-            <Input 
-              placeholder="Cari nama mahasiswa atau NIM..." 
+            <Input
+              placeholder="Cari nama mahasiswa atau NIM..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-11"
@@ -120,8 +110,8 @@ export default function ValidasiKaprodiPage() {
           </div>
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
-              <Button 
-                onClick={handleBulkApprove} 
+              <Button
+                onClick={handleBulkApprove}
                 isLoading={isBulkApproving}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-widest px-6"
               >
@@ -139,8 +129,8 @@ export default function ValidasiKaprodiPage() {
             <thead>
               <tr className="text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
                 <th className="pb-4 px-4 w-10">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
                     checked={selectedIds.length > 0 && selectedIds.length === pendingItems.length}
                     onChange={toggleSelectAll}
@@ -166,8 +156,8 @@ export default function ValidasiKaprodiPage() {
                     selectedIds.includes(p.id) && "bg-blue-50/50"
                   )}>
                     <td className="py-5 px-4">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
                         disabled={p.status !== 'Pending Kaprodi'}
                         checked={selectedIds.includes(p.id)}

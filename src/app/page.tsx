@@ -22,16 +22,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     const userStr = localStorage.getItem("konverpro_user");
-    const token = localStorage.getItem("konverpro_token");
 
-    if (userStr && userStr !== "undefined" && token) {
+    if (userStr && userStr !== "undefined") {
       try {
         const user = JSON.parse(userStr);
         if (user && user.role) {
           router.push(`/${user.role}`);
         }
       } catch {
-        localStorage.removeItem("konverpro_token");
         localStorage.removeItem("konverpro_user");
       }
     }
@@ -46,17 +44,12 @@ export default function LoginPage() {
       const { data } = await api.post("/api/auth/login", { email, password });
 
       if (data.success) {
-        localStorage.setItem("konverpro_token", data.data.access_token);
-        localStorage.setItem("konverpro_user", JSON.stringify(data.data.user));
-
-        const token = data.data.access_token || data.data.token;
         const user = data.data.user;
 
-        if (!token || !user?.role) {
+        if (!user?.role) {
           throw new Error("Respons login dari server tidak lengkap.");
         }
 
-        localStorage.setItem("konverpro_token", token);
         localStorage.setItem("konverpro_user", JSON.stringify(user));
 
         toast.success(`Selamat datang, ${user.nama_lengkap}!`);

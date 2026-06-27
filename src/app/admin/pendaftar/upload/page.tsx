@@ -12,6 +12,7 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { downloadBlob } from '@/lib/utils/download';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -77,25 +78,8 @@ export default function UploadPendaftarPage() {
 
   const handleDownloadTemplate = async () => {
     setIsDownloadingTemplate(true);
-
-    try {
-      const response = await api.get('/api/admin/template/download', {
-        responseType: 'blob',
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'Template_Konversi_UNSIA.xlsx';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Gagal mengunduh template');
-    } finally {
-      setIsDownloadingTemplate(false);
-    }
+    await downloadBlob('/api/admin/template/download', 'Template_Konversi_UNSIA.xlsx');
+    setIsDownloadingTemplate(false);
   };
 
   return (

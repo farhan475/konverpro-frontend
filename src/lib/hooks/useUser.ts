@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import type { User } from '@/lib/types';
 import api from '@/lib/api';
 
@@ -15,7 +14,6 @@ interface UseUserReturn {
 export const useUser = (): UseUserReturn => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   const loadUser = useCallback(() => {
     try {

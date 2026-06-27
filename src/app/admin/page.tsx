@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  UserPlus, 
-  Files, 
+import {
+  UserPlus,
+  Files,
   Clock,
   CheckCircle,
   ArrowRight,
@@ -17,6 +17,8 @@ import { StatCard } from "@/components/shared/StatCard";
 import { DataTable } from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
+import { getStatusVariant } from "@/lib/utils/status";
+import { downloadBlob } from "@/lib/utils/download";
 import Link from "next/link";
 import api from "@/lib/api";
 import { ApiResponse, Pendaftar, StatusPendaftar } from "@/lib/types";
@@ -43,17 +45,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboard();
   }, []);
-
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Dashboard...</div>;
 
@@ -96,8 +87,8 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <PageHeader 
-        title="Dashboard Admin" 
+      <PageHeader
+        title="Dashboard Admin"
         description="Selamat datang kembali! Silakan unggah data transkrip mahasiswa baru untuk memulai proses konversi."
       >
         <Link href="/admin/pendaftar/upload">
@@ -109,29 +100,29 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          label="Total Input" 
-          value={data?.stats?.total_input || 0} 
-          icon={UserPlus} 
-          variant="blue" 
+        <StatCard
+          label="Total Input"
+          value={data?.stats?.total_input || 0}
+          icon={UserPlus}
+          variant="blue"
         />
-        <StatCard 
-          label="Sedang Proses" 
-          value={data?.stats?.pending || 0} 
-          icon={Clock} 
-          variant="orange" 
+        <StatCard
+          label="Sedang Proses"
+          value={data?.stats?.pending || 0}
+          icon={Clock}
+          variant="orange"
         />
-        <StatCard 
-          label="Telah Disetujui" 
-          value={data?.stats?.approved || 0} 
-          icon={CheckCircle} 
-          variant="green" 
+        <StatCard
+          label="Telah Disetujui"
+          value={data?.stats?.approved || 0}
+          icon={CheckCircle}
+          variant="green"
         />
-        <StatCard 
-          label="Perlu Revisi" 
-          value={data?.stats?.revisi || 0} 
-          icon={Files} 
-          variant="red" 
+        <StatCard
+          label="Perlu Revisi"
+          value={data?.stats?.revisi || 0}
+          icon={Files}
+          variant="red"
         />
       </div>
 
@@ -145,10 +136,10 @@ export default function AdminDashboard() {
                 Lihat Semua
               </Link>
             </div>
-            
-            <DataTable 
-              columns={columns} 
-              data={data?.recent_pendaftar || []} 
+
+            <DataTable
+              columns={columns}
+              data={data?.recent_pendaftar || []}
               loading={loading}
               emptyTitle="Belum Ada Data Input"
               emptyDescription="Anda belum melakukan input data mahasiswa baru."
@@ -174,24 +165,10 @@ export default function AdminDashboard() {
                 <p className="text-sm text-blue-900/70 font-medium">Unggah file Excel dan lampirkan PDF asli (opsional).</p>
               </li>
             </ul>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10 mt-8"
-              onClick={async () => {
-                try {
-                  const response = await api.get('/api/admin/template/download', { responseType: 'blob' });
-                  const url = window.URL.createObjectURL(new Blob([response.data]));
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.setAttribute('download', 'Template_Konversi_UNSIA.xlsx');
-                  document.body.appendChild(link);
-                  link.click();
-                  link.remove();
-                  window.URL.revokeObjectURL(url);
-                } catch {
-                  toast.error('Gagal mengunduh template.');
-                }
-              }}
+              onClick={() => downloadBlob('/api/admin/template/download', 'Template_Konversi_UNSIA.xlsx')}
             >
               Unduh Template Excel
             </Button>

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  User, 
-  Table, 
-  Clock, 
-  CheckCircle, 
+import {
+  ArrowLeft,
+  User,
+  Table,
+  Clock,
+  CheckCircle,
   XCircle,
   FileXls,
   FilePdf,
@@ -17,6 +17,8 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
+import { downloadBlob } from '@/lib/utils/download';
 import api from '@/lib/api';
 import { ApiResponse, StatusPendaftar } from '@/lib/types';
 import { toast } from 'sonner';
@@ -51,21 +53,10 @@ export default function AdminDetailPendaftarPage() {
 
   if (loading) return <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Memuat Detail...</div>;
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      default: return 'neutral';
-    }
-  };
-
   return (
     <div>
-      <PageHeader 
-        title="Detail Pendaftar" 
+      <PageHeader
+        title="Detail Pendaftar"
         description="Lihat informasi lengkap mahasiswa dan status terkini dari proses konversi SKS."
       >
         <Button variant="secondary" onClick={() => router.back()} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
@@ -78,7 +69,7 @@ export default function AdminDetailPendaftarPage() {
           {/* Status Timeline / Card */}
           <Card className={cn(
             "border-l-8",
-            pendaftar.status === 'Approved' ? "border-green" : 
+            pendaftar.status === 'Approved' ? "border-green" :
             pendaftar.status === 'Rejected' ? "border-red" : "border-blue-900"
           )}>
             <div className="flex items-center justify-between">
@@ -199,46 +190,18 @@ export default function AdminDetailPendaftarPage() {
           <Card className="bg-gray-50 border-gray-200">
             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Lampiran Berkas</h4>
             <div className="space-y-3">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 className="w-full justify-start text-xs font-bold bg-white"
-                onClick={async () => {
-                  try {
-                    const response = await api.get(`/api/files/excel/${id}`, { responseType: 'blob' });
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                    window.URL.revokeObjectURL(url);
-                  } catch {
-                    toast.error('Gagal mengunduh file Excel');
-                  }
-                }}
+                onClick={() => downloadBlob(`/api/files/excel/${id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`)}
               >
                 <FileXls size={18} weight="bold" className="text-green-600" /> Transkrip Excel
               </Button>
               {pendaftar.file_transkrip_pdf_path && (
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   className="w-full justify-start text-xs font-bold bg-white"
-                  onClick={async () => {
-                    try {
-                      const response = await api.get(`/api/files/pdf/${id}`, { responseType: 'blob' });
-                      const url = window.URL.createObjectURL(new Blob([response.data]));
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.setAttribute('download', `Transkrip_${pendaftar.nama_lengkap}.pdf`);
-                      document.body.appendChild(link);
-                      link.click();
-                      link.remove();
-                      window.URL.revokeObjectURL(url);
-                    } catch {
-                      toast.error('Gagal mengunduh file PDF');
-                    }
-                  }}
+                  onClick={() => downloadBlob(`/api/files/pdf/${id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`)}
                 >
                   <FilePdf size={18} weight="bold" className="text-red-600" /> Transkrip PDF Asli
                 </Button>

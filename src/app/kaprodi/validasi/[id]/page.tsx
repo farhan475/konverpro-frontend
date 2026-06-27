@@ -50,13 +50,15 @@ export default function DetailValidasiPage() {
   const fetchDetail = async () => {
     setLoading(true);
     try {
-      const [detailRes, kurikulumRes] = await Promise.all([
-        api.get<ApiResponse<any>>(`/api/kaprodi/validasi/${id}`),
-        api.get<ApiResponse<any[]>>('/api/akademik/kurikulum') // Kaprodi can see kurikulum
-      ]);
+      const { data } = await api.get<ApiResponse<any>>(`/api/kaprodi/validasi/${id}`);
       
-      if (detailRes.data.success) setPendaftar(detailRes.data.data);
-      if (kurikulumRes.data.success) setKurikulum(kurikulumRes.data.data);
+      if (data.success) {
+        setPendaftar(data.data);
+        // Kurikulum sudah ada di dalam relasi prodi.kurikulum_mk dari backend
+        if (data.data.prodi?.kurikulum_mk) {
+          setKurikulum(data.data.prodi.kurikulum_mk);
+        }
+      }
     } catch (error) {
       toast.error('Gagal mengambil detail validasi');
       router.push('/kaprodi/validasi');

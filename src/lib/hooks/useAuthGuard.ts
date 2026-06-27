@@ -16,9 +16,8 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
 
   useEffect(() => {
     const userStr = localStorage.getItem('konverpro_user');
-    const token = localStorage.getItem('konverpro_token');
 
-    if (!userStr || !token || userStr === 'undefined') {
+    if (!userStr || userStr === 'undefined') {
       if (pathname !== '/' && !toastShown.current) {
         toast.error('Sesi berakhir. Silakan login kembali.');
         toastShown.current = true;
@@ -55,7 +54,6 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
     } catch (error) {
       console.error('Auth Guard Error:', error);
       localStorage.removeItem('konverpro_user');
-      localStorage.removeItem('konverpro_token');
       if (pathname !== '/' && !toastShown.current) {
         toast.error('Terjadi kesalahan sesi. Silakan login kembali.');
         toastShown.current = true;

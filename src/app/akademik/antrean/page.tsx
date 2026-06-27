@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  MagnifyingGlass, 
-  Funnel, 
-  ArrowRight, 
-  Clock, 
-  CheckCircle, 
-  HourglassHigh, 
+import {
+  MagnifyingGlass,
+  Funnel,
+  ArrowRight,
+  Clock,
+  CheckCircle,
+  HourglassHigh,
   ListBullets,
   ArrowClockwise,
   MagicWand,
@@ -20,6 +20,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
 import api from '@/lib/api';
 import { ApiResponse, Pendaftar, StatusPendaftar } from '@/lib/types';
 import { toast } from 'sonner';
@@ -36,7 +37,7 @@ export default function AntreanAkademikPage() {
       const { data } = await api.get<ApiResponse<Pendaftar[]>>('/api/akademik/antrean');
       if (data.success) {
         setPendaftar(data.data);
-        
+
         // Simple stats calculation
         const baru = data.data.filter(p => p.status === 'Baru').length;
         const ai = data.data.filter(p => p.status === 'AI Processing').length;
@@ -54,32 +55,20 @@ export default function AntreanAkademikPage() {
     fetchAntrean();
   }, []);
 
-  const getStatusVariant = (status: StatusPendaftar) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Rejected': return 'danger';
-      case 'Revisi': return 'warning';
-      case 'AI Processing': return 'ai';
-      case 'Pending Kaprodi': return 'info';
-      case 'Review Akademik': return 'info';
-      default: return 'neutral';
-    }
-  };
-
-  const filteredPendaftar = pendaftar.filter(p => 
+  const filteredPendaftar = pendaftar.filter(p =>
     p.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.nim_asal && p.nim_asal.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
     <div>
-      <PageHeader 
-        title="Antrean Konversi" 
+      <PageHeader
+        title="Antrean Konversi"
         description="Monitoring dan kelola antrean permohonan konversi SKS. Lakukan review data parsing sebelum memicu proses matching AI."
       >
-        <Button 
-          variant="secondary" 
-          onClick={fetchAntrean} 
+        <Button
+          variant="secondary"
+          onClick={fetchAntrean}
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
           <ArrowClockwise size={20} weight="bold" className={loading ? 'animate-spin' : ''} /> Perbarui Data
@@ -120,8 +109,8 @@ export default function AntreanAkademikPage() {
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
-            <Input 
-              placeholder="Cari nama atau NIM asal..." 
+            <Input
+              placeholder="Cari nama atau NIM asal..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-11"

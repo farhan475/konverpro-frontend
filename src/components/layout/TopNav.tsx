@@ -28,10 +28,15 @@ export const TopNav = ({ role, navItems }: TopNavProps) => {
   const userStr = typeof window !== 'undefined' ? localStorage.getItem('konverpro_user') : null;
   const user = userStr ? JSON.parse(userStr) : null;
 
-  const handleLogout = () => {
-    localStorage.removeItem('konverpro_token');
-    localStorage.removeItem('konverpro_user');
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('konverpro_user');
+      window.location.href = '/';
+    }
   };
 
   return (
