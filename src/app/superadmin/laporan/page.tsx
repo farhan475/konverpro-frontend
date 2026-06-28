@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/shared/StatCard';
 import { DataTable } from '@/components/shared/DataTable';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
+import { downloadBlob } from '@/lib/utils/download';
 import { ApiResponse, MonthlyTrend, ProdiReportRow, StatusSummary, SuperadminLaporan } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -81,7 +81,7 @@ export default function LaporanGlobalPage() {
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
           onClick={async () => {
             try {
-              await downloadPrivateFile('/api/superadmin/laporan?format=csv', 'laporan_global_konverpro.csv');
+              await downloadBlob('/api/superadmin/laporan?format=csv', 'laporan_global_konverpro.csv');
             } catch {
               toast.error('Gagal mengekspor laporan global');
             }

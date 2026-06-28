@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  MagnifyingGlass, 
-  ArrowRight, 
-  Clock, 
+import {
+  MagnifyingGlass,
+  Funnel,
+  ArrowRight,
+  Clock,
   ListBullets,
   ArrowClockwise,
   Eye
@@ -15,10 +16,10 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
 import api from '@/lib/api';
 import { ApiResponse, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
-import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function AntreanAkademikPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
@@ -38,7 +39,7 @@ export default function AntreanAkademikPage() {
       });
       if (data.success) {
         setPendaftar(data.data);
-        
+
         // Simple stats calculation
         const baru = data.data.filter(p => p.status === 'Baru').length;
         const ai = data.data.filter(p => p.status === 'AI Processing').length;
@@ -63,12 +64,12 @@ export default function AntreanAkademikPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Antrean Konversi" 
+      <PageHeader
+        title="Antrean Konversi"
         description="Monitoring dan kelola antrean permohonan konversi SKS. Lakukan review data parsing sebelum memicu proses matching AI."
       >
-        <Button 
-          variant="secondary" 
+        <Button
+          variant="secondary"
           onClick={() => fetchAntrean()}
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
@@ -110,8 +111,8 @@ export default function AntreanAkademikPage() {
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
-            <Input 
-              placeholder="Cari nama atau NIM asal..." 
+            <Input
+              placeholder="Cari nama atau NIM asal..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-11"
@@ -163,7 +164,7 @@ export default function AntreanAkademikPage() {
                       <p className="text-[11px] text-gray-400 font-medium">{p.asal_prodi || '-'}</p>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusBadgeVariant(p.status)}>
+                      <Badge variant={getStatusVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>

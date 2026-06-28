@@ -29,7 +29,7 @@ export default function AdminLayout({
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <div className="h-16 bg-blue-900 w-full animate-pulse" />
         <div className="flex-1 p-8">
-          <Skeleton className="h-48 w-full rounded-3xl mb-8" />
+          <Skeleton className="h-48 w-full rounded-2xl mb-8" />
           <Skeleton className="h-96 w-full rounded-2xl" />
         </div>
       </div>

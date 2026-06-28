@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  MagnifyingGlass, 
+import {
+  MagnifyingGlass,
   ArrowRight,
   CheckSquareOffset
 } from '@phosphor-icons/react';
@@ -11,19 +11,18 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ApiResponse, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function ValidasiKaprodiPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  
   // Bulk Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
@@ -59,7 +58,7 @@ export default function ValidasiKaprodiPage() {
   const pendingItems = pendaftar.filter(p => p.status === 'Pending Kaprodi');
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -74,7 +73,7 @@ export default function ValidasiKaprodiPage() {
 
   const handleBulkApprove = async () => {
     if (selectedIds.length === 0) return;
-    
+
     if (!confirm(`Apakah Anda yakin ingin menyetujui ${selectedIds.length} permohonan sekaligus?`)) return;
 
     setIsBulkApproving(true);
@@ -84,6 +83,8 @@ export default function ValidasiKaprodiPage() {
         toast.success(data.message);
         setSelectedIds([]);
         fetchValidasi();
+      } else {
+        toast.error(data.message ?? 'Sebagian approval gagal diproses.');
       }
     } catch (error: unknown) {
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -95,16 +96,16 @@ export default function ValidasiKaprodiPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Validasi Konversi SKS" 
+      <PageHeader
+        title="Validasi Konversi SKS"
         description="Review dan berikan persetujuan akhir pada permohonan konversi mahasiswa. Anda dapat melakukan penyesuaian manual jika diperlukan."
       />
 
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
-            <Input 
-              placeholder="Cari nama mahasiswa atau NIM..." 
+            <Input
+              placeholder="Cari nama mahasiswa atau NIM..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-11"
@@ -113,8 +114,8 @@ export default function ValidasiKaprodiPage() {
           </div>
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
-              <Button 
-                onClick={handleBulkApprove} 
+              <Button
+                onClick={handleBulkApprove}
                 isLoading={isBulkApproving}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-widest px-6"
               >
@@ -144,8 +145,8 @@ export default function ValidasiKaprodiPage() {
             <thead>
               <tr className="text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
                 <th className="pb-4 px-4 w-10">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
                     checked={selectedIds.length > 0 && selectedIds.length === pendingItems.length}
                     onChange={toggleSelectAll}
@@ -171,8 +172,8 @@ export default function ValidasiKaprodiPage() {
                     selectedIds.includes(p.id) && "bg-blue-50/50"
                   )}>
                     <td className="py-5 px-4">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
                         disabled={p.status !== 'Pending Kaprodi'}
                         checked={selectedIds.includes(p.id)}
@@ -191,7 +192,7 @@ export default function ValidasiKaprodiPage() {
                       <span className="font-bold text-blue-900">{p.total_sks_diakui || 0} SKS</span>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusBadgeVariant(p.status)}>
+                      <Badge variant={getStatusVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>

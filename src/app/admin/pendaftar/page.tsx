@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  MagnifyingGlass, 
+import {
+  MagnifyingGlass,
   UserPlus,
   Funnel,
   Eye
@@ -12,11 +12,11 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
 import api from '@/lib/api';
 import { ApiResponse, PaginationMeta, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { getStatusBadgeVariant } from '@/lib/status';
 
 export default function ListPendaftarPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar[]>([]);
@@ -55,8 +55,8 @@ export default function ListPendaftarPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Data Pendaftar" 
+      <PageHeader
+        title="Data Pendaftar"
         description="Pantau seluruh data mahasiswa yang telah Anda input beserta status konversi terkini dari pihak Akademik dan Kaprodi."
       >
         <Link href="/admin/pendaftar/upload">
@@ -69,8 +69,8 @@ export default function ListPendaftarPage() {
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
-            <Input 
-              placeholder="Cari nama atau NIM asal..." 
+            <Input
+              placeholder="Cari nama atau NIM asal..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -134,7 +134,7 @@ export default function ListPendaftarPage() {
                       <Badge variant="neutral" className="bg-gray-50">{p.prodi?.nama_prodi || '-'}</Badge>
                     </td>
                     <td className="py-5 px-4 text-center">
-                      <Badge variant={getStatusBadgeVariant(p.status)}>
+                      <Badge variant={getStatusVariant(p.status)}>
                         {p.status}
                       </Badge>
                     </td>
@@ -159,17 +159,17 @@ export default function ListPendaftarPage() {
               Menampilkan {pendaftar.length} dari {meta.total} data
             </p>
             <div className="flex gap-2">
-              <Button 
-                variant="secondary" 
-                className="px-4 py-2 text-xs" 
+              <Button
+                variant="secondary"
+                className="px-4 py-2 text-xs"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
               >
                 Sebelumnya
               </Button>
-              <Button 
-                variant="secondary" 
-                className="px-4 py-2 text-xs" 
+              <Button
+                variant="secondary"
+                className="px-4 py-2 text-xs"
                 disabled={page === meta.last_page}
                 onClick={() => setPage(page + 1)}
               >

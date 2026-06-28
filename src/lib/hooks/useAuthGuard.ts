@@ -41,7 +41,15 @@ export const useAuthGuard = (allowedRoles: Role[]) => {
         return;
       }
 
-      const allowedRoleList = JSON.parse(rolesString) as Role[];
+      let allowedRoleList: Role[] = [];
+      try {
+        allowedRoleList = JSON.parse(rolesString) as Role[];
+      } catch {
+        toast.error('Sesi tidak valid. Silakan login kembali.');
+        toastShown.current = true;
+        router.push('/');
+        return;
+      }
       if (!allowedRoleList.includes(user.role)) {
         if (!toastShown.current) {
           toast.error('Anda tidak memiliki akses ke halaman ini.');

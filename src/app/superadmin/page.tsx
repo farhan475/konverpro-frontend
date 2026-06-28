@@ -17,7 +17,7 @@ import api from "@/lib/api";
 import { ApiResponse } from "@/lib/types";
 import { toast } from "sonner";
 import Link from "next/link";
-import { downloadPrivateFile } from "@/lib/download";
+import { downloadBlob } from "@/lib/utils/download";
 
 type SuperadminDashboardData = {
   stats: {
@@ -82,7 +82,7 @@ export default function SuperadminDashboard() {
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
           onClick={async () => {
             try {
-              await downloadPrivateFile('/api/superadmin/laporan?format=csv', 'laporan_global_konverpro.csv');
+              await downloadBlob('/api/superadmin/laporan?format=csv', 'laporan_global_konverpro.csv');
             } catch {
               toast.error('Gagal mengunduh laporan global');
             }
@@ -195,6 +195,11 @@ export default function SuperadminDashboard() {
               <Link href="/superadmin/config" className="block">
                 <Button className="w-full justify-start bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold py-4">
                   Pengaturan API Sumopod
+                </Button>
+              </Link>
+              <Link href="/superadmin/ba-templates" className="block">
+                <Button className="w-full justify-start bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold py-4">
+                  Template Berita Acara
                 </Button>
               </Link>
             </div>

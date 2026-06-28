@@ -74,7 +74,7 @@ export default function LoginPage() {
 
   return (
     <main id="main-content" className="bg-blue-900 font-sans min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-8 md:p-10">
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-sm overflow-hidden p-8 md:p-10">
         <div className="text-center mb-10">
           <div className="w-12 h-12 bg-yellow rounded-xl flex items-center justify-center mb-4 text-blue-900 shadow-lg mx-auto">
             <ShieldCheck size={28} weight="bold" />

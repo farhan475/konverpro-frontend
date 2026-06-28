@@ -297,14 +297,14 @@ export default function KurikulumManagementPage() {
               label="SKS" 
               type="number"
               value={formData.sks}
-              onChange={(e) => setFormData({...formData, sks: parseInt(e.target.value)})}
+              onChange={(e) => setFormData({...formData, sks: parseInt(e.target.value) || 0})}
               required
             />
             <Input 
               label="Semester" 
               type="number"
               value={formData.semester}
-              onChange={(e) => setFormData({...formData, semester: parseInt(e.target.value)})}
+              onChange={(e) => setFormData({...formData, semester: parseInt(e.target.value) || 0})}
               required
             />
           </div>

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { DownloadSimple, PaperPlaneTilt } from '@phosphor-icons/react';
 import api from '@/lib/api';
 import { Appeal, ApiResponse, BaDocument, HasilKonversi } from '@/lib/types';
+import { downloadBlob } from '@/lib/utils/download';
 import { Button } from '@/components/ui/Button';
 import { toast } from 'sonner';
 
@@ -39,14 +40,18 @@ export default function StudentPortalPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    await api.post(`/api/public/portal/${token}/appeals`, {
-      reason,
-      additional_information: details || null,
-    });
-    toast.success('Permohonan evaluasi ulang dikirim');
-    setReason('');
-    setDetails('');
-    load();
+    try {
+      await api.post(`/api/public/portal/${token}/appeals`, {
+        reason,
+        additional_information: details || null,
+      });
+      toast.success('Permohonan evaluasi ulang dikirim');
+      setReason('');
+      setDetails('');
+      load();
+    } catch {
+      toast.error('Gagal mengirim permohonan evaluasi ulang. Silakan coba lagi.');
+    }
   };
 
   if (loading) return <main id="main-content" className="p-10 text-center">Memuat portal...</main>;
@@ -71,7 +76,7 @@ export default function StudentPortalPage() {
         </section>
 
         {data.document?.status === 'final' && (
-          <Button onClick={() => window.location.assign(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/public/portal/${token}/download-ba`)}>
+          <Button onClick={() => downloadBlob(`/api/public/portal/${token}/download-ba`, 'Berita_Acara.pdf')}>
             <DownloadSimple size={18} /> Unduh Berita Acara
           </Button>
         )}

@@ -12,8 +12,8 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { downloadBlob } from '@/lib/utils/download';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -66,7 +66,7 @@ export default function UploadPendaftarPage() {
       });
 
       if (data.success) {
-        toast.success(`Berhasil mengunggah data ${data.data.length} mahasiswa`);
+        toast.success(`Berhasil mengunggah data ${data.data?.length ?? 1} mahasiswa`);
         router.push('/admin/pendaftar');
       }
     } catch (error: unknown) {
@@ -81,7 +81,7 @@ export default function UploadPendaftarPage() {
     setIsDownloadingTemplate(true);
 
     try {
-      await downloadPrivateFile('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
+      await downloadBlob('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
     } catch {
       toast.error('Gagal mengunduh template');
     } finally {
@@ -105,7 +105,7 @@ export default function UploadPendaftarPage() {
             </h3>
 
             <label className={cn(
-              'relative flex flex-col items-center justify-center border-2 border-dashed rounded-[2rem] p-12 transition-all cursor-pointer',
+              'relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-12 transition-all cursor-pointer',
               fileExcel ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
             )}>
               <input type="file" className="hidden" accept=".xlsx,.xls" onChange={handleExcelChange} />
@@ -137,7 +137,7 @@ export default function UploadPendaftarPage() {
             </h3>
 
             <label className={cn(
-              'relative flex flex-col items-center justify-center border-2 border-dashed rounded-[2rem] p-12 transition-all cursor-pointer',
+              'relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-12 transition-all cursor-pointer',
               filePdf ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
             )}>
               <input type="file" className="hidden" accept="application/pdf" onChange={handlePdfChange} />
@@ -165,7 +165,7 @@ export default function UploadPendaftarPage() {
           <div className="flex items-center justify-end gap-4 pt-4">
             <Button variant="secondary" onClick={() => router.back()}>Batal</Button>
             <Button
-              className="px-10 h-12 shadow-xl shadow-blue-900/20"
+              className="px-10 h-12 shadow-sm shadow-blue-900/20"
               onClick={handleUpload}
               isLoading={isUploading}
               disabled={!fileExcel}

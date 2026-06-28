@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 interface PageHeaderProps {
@@ -8,7 +10,7 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, description, children }: PageHeaderProps) => {
   return (
-    <div className="relative overflow-hidden bg-blue-900 text-white rounded-3xl p-8 mb-8 shadow-xl">
+    <div className="relative overflow-hidden bg-blue-900 text-white rounded-2xl p-8 mb-8 shadow-sm">
       {/* Decorative circles */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-yellow rounded-full blur-3xl opacity-10 -mr-32 -mt-32"></div>
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-700 rounded-full blur-3xl opacity-10 -ml-24 -mb-24"></div>

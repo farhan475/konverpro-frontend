@@ -89,7 +89,7 @@ export function NotificationCenter() {
       </button>
 
       {open && (
-        <div className="fixed inset-x-3 top-16 z-[70] overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-900 shadow-2xl sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:w-[380px]">
+        <div className="fixed inset-x-3 top-16 z-[70] overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:w-[380px]">
           <div className="flex h-14 items-center justify-between border-b border-gray-100 px-4">
             <div>
               <p className="text-sm font-bold">Notifikasi</p>

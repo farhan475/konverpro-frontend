@@ -51,8 +51,9 @@ export default function ConfigPage() {
       if (data.success) {
         toast.success('Konfigurasi berhasil disimpan');
       }
-    } catch {
-      toast.error('Gagal menyimpan konfigurasi');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || 'Gagal menyimpan konfigurasi');
     } finally {
       setIsSaving(false);
     }
@@ -158,7 +159,7 @@ export default function ConfigPage() {
         ))}
       </div>
 
-      <div className="mt-12 p-6 bg-yellow-bg border border-yellow/20 rounded-[2rem] flex items-start gap-4">
+      <div className="mt-12 p-6 bg-yellow-bg border border-yellow/20 rounded-2xl flex items-start gap-4">
         <div className="w-10 h-10 rounded-full bg-yellow flex items-center justify-center text-blue-900 shrink-0">
           <Lock size={20} weight="bold" />
         </div>

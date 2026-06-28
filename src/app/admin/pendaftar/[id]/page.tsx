@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  ArrowLeft, 
-  User, 
-  Table, 
-  CheckCircle, 
+import {
+  ArrowLeft,
+  User,
+  Table,
+  CheckCircle,
   FileXls,
   FilePdf,
   Info,
@@ -16,11 +16,11 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { getStatusVariant } from '@/lib/utils/status';
+import { downloadBlob } from '@/lib/utils/download';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
 import { ApiResponse, HasilKonversi, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
-import { getStatusBadgeVariant } from '@/lib/status';
 import { cn } from '@/lib/utils';
 
 export default function AdminDetailPendaftarPage() {
@@ -57,8 +57,8 @@ export default function AdminDetailPendaftarPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Detail Pendaftar" 
+      <PageHeader
+        title="Detail Pendaftar"
         description="Lihat informasi lengkap mahasiswa dan status terkini dari proses konversi SKS."
       >
         <Button variant="secondary" onClick={() => router.back()} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
@@ -71,14 +71,14 @@ export default function AdminDetailPendaftarPage() {
           {/* Status Timeline / Card */}
           <Card className={cn(
             "border-l-8",
-            pendaftar.status === 'Approved' ? "border-green" : 
+            pendaftar.status === 'Approved' ? "border-green" :
             pendaftar.status === 'Rejected' ? "border-red" : "border-blue-900"
           )}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status Permohonan</p>
                 <div className="flex items-center gap-3">
-                  <Badge variant={getStatusBadgeVariant(pendaftar.status)} className="text-sm px-4 py-1">
+                  <Badge variant={getStatusVariant(pendaftar.status)} className="text-sm px-4 py-1">
                     {pendaftar.status}
                   </Badge>
                   {pendaftar.status === 'Approved' && (
@@ -192,12 +192,12 @@ export default function AdminDetailPendaftarPage() {
           <Card className="bg-gray-50 border-gray-200">
             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Lampiran Berkas</h4>
             <div className="space-y-3">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 className="w-full justify-start text-xs font-bold bg-white"
                 onClick={async () => {
                   try {
-                    await downloadPrivateFile(`/api/files/excel/${id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
+                    await downloadBlob(`/api/files/excel/${id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
                   } catch {
                     toast.error('Gagal mengunduh file Excel');
                   }
@@ -206,12 +206,12 @@ export default function AdminDetailPendaftarPage() {
                 <FileXls size={18} weight="bold" className="text-green-600" /> Transkrip Excel
               </Button>
               {pendaftar.file_transkrip_pdf_path && (
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   className="w-full justify-start text-xs font-bold bg-white"
                   onClick={async () => {
                     try {
-                      await downloadPrivateFile(`/api/files/pdf/${id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
+                      await downloadBlob(`/api/files/pdf/${id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
                     } catch {
                       toast.error('Gagal mengunduh file PDF');
                     }

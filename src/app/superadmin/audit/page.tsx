@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/shared/DataTable';
 import { EmptyState } from '@/components/shared/EmptyState';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
+import { downloadBlob } from '@/lib/utils/download';
 import { ApiResponse, PaginationMeta } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -73,7 +73,7 @@ export default function AuditSystemPage() {
       if (searchTerm) params.set('search', searchTerm);
       if (actionFilter) params.set('action', actionFilter);
 
-      await downloadPrivateFile(
+      await downloadBlob(
         `/api/superadmin/audit?${params.toString()}`,
         'audit_log_konverpro.csv',
       );

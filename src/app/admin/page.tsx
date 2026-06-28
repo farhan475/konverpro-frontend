@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  UserPlus, 
-  Files, 
+import {
+  UserPlus,
+  Files,
   Clock,
   CheckCircle,
   ArrowRight,
@@ -17,10 +17,10 @@ import { StatCard } from "@/components/shared/StatCard";
 import { DataTable } from "@/components/shared/DataTable";
 import Link from "next/link";
 import api from "@/lib/api";
-import { downloadPrivateFile } from "@/lib/download";
+import { downloadBlob } from "@/lib/utils/download";
 import { AdminDashboardData, ApiResponse, Pendaftar } from "@/lib/types";
 import { toast } from "sonner";
-import { getStatusBadgeVariant } from "@/lib/status";
+import { getStatusVariant } from "@/lib/utils/status";
 
 export default function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardData | null>(null);
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     {
       header: 'Status',
       accessor: (p: Pendaftar) => (
-        <Badge variant={getStatusBadgeVariant(p.status)}>
+        <Badge variant={getStatusVariant(p.status)}>
           {p.status}
         </Badge>
       )
@@ -85,8 +85,8 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <PageHeader 
-        title="Dashboard Admin" 
+      <PageHeader
+        title="Dashboard Admin"
         description="Selamat datang kembali! Silakan unggah data transkrip mahasiswa baru untuk memulai proses konversi."
       >
         <Link href="/admin/pendaftar/upload">
@@ -98,29 +98,29 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          label="Total Input" 
-          value={data?.stats?.total_input || 0} 
-          icon={UserPlus} 
-          variant="blue" 
+        <StatCard
+          label="Total Input"
+          value={data?.stats?.total_input || 0}
+          icon={UserPlus}
+          variant="blue"
         />
-        <StatCard 
-          label="Sedang Proses" 
-          value={data?.stats?.pending || 0} 
-          icon={Clock} 
-          variant="orange" 
+        <StatCard
+          label="Sedang Proses"
+          value={data?.stats?.pending || 0}
+          icon={Clock}
+          variant="orange"
         />
-        <StatCard 
-          label="Telah Disetujui" 
-          value={data?.stats?.approved || 0} 
-          icon={CheckCircle} 
-          variant="green" 
+        <StatCard
+          label="Telah Disetujui"
+          value={data?.stats?.approved || 0}
+          icon={CheckCircle}
+          variant="green"
         />
-        <StatCard 
-          label="Perlu Revisi" 
-          value={data?.stats?.revisi || 0} 
-          icon={Files} 
-          variant="red" 
+        <StatCard
+          label="Perlu Revisi"
+          value={data?.stats?.revisi || 0}
+          icon={Files}
+          variant="red"
         />
       </div>
 
@@ -134,10 +134,10 @@ export default function AdminDashboard() {
                 Lihat Semua
               </Link>
             </div>
-            
-            <DataTable 
-              columns={columns} 
-              data={data?.recent_pendaftar || []} 
+
+            <DataTable
+              columns={columns}
+              data={data?.recent_pendaftar || []}
               loading={loading}
               emptyTitle="Belum Ada Data Input"
               emptyDescription="Anda belum melakukan input data mahasiswa baru."
@@ -163,12 +163,12 @@ export default function AdminDashboard() {
                 <p className="text-sm text-blue-900/70 font-medium">Unggah file Excel dan lampirkan PDF asli (opsional).</p>
               </li>
             </ul>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10 mt-8"
               onClick={async () => {
                 try {
-                  await downloadPrivateFile('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
+                  await downloadBlob('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
                 } catch {
                   toast.error('Gagal mengunduh template.');
                 }

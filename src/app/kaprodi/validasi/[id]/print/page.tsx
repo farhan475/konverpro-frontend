@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Spinner, FilePdf } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
-import { downloadPrivateFile } from '@/lib/download';
+import { downloadBlob } from '@/lib/utils/download';
 import { toast } from 'sonner';
 
 export default function PrintBeritaAcara() {
@@ -15,7 +15,7 @@ export default function PrintBeritaAcara() {
   useEffect(() => {
     const download = async () => {
       try {
-        await downloadPrivateFile(`/api/kaprodi/validasi/${id}/download-ba`, `Berita_Acara_${id}.pdf`);
+        await downloadBlob(`/api/kaprodi/validasi/${id}/download-ba`, `Berita_Acara_${id}.pdf`);
       } catch {
         toast.error('Gagal mengunduh Berita Acara. Pastikan permohonan sudah Approved.');
       } finally {
@@ -46,7 +46,7 @@ export default function PrintBeritaAcara() {
             onClick={async () => {
               setIsDownloading(true);
               try {
-                await downloadPrivateFile(`/api/kaprodi/validasi/${id}/download-ba`, `Berita_Acara_${id}.pdf`);
+                await downloadBlob(`/api/kaprodi/validasi/${id}/download-ba`, `Berita_Acara_${id}.pdf`);
               } finally {
                 setIsDownloading(false);
               }

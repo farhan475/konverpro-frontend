@@ -10,10 +10,20 @@ import { toast } from 'sonner';
 
 export default function AppealsPage() {
   const [rows, setRows] = useState<Appeal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
-  const load = () => api.get<ApiResponse<Appeal[]>>('/api/akademik/appeals')
-    .then((response) => setRows(response.data.data))
-    .catch(() => toast.error('Gagal memuat evaluasi ulang'));
+  const load = () => {
+    setIsLoading(true);
+    setIsError(false);
+    api.get<ApiResponse<Appeal[]>>('/api/akademik/appeals')
+      .then((response) => setRows(response.data.data))
+      .catch(() => {
+        setIsError(true);
+        toast.error('Gagal memuat evaluasi ulang');
+      })
+      .finally(() => setIsLoading(false));
+  };
 
   useEffect(() => {
     void load();
@@ -22,8 +32,12 @@ export default function AppealsPage() {
   const resolve = async (appeal: Appeal, decision: 'accepted' | 'rejected') => {
     const notes = prompt(decision === 'accepted' ? 'Catatan tindak lanjut evaluasi ulang:' : 'Alasan penolakan evaluasi ulang:');
     if (!notes) return;
-    await api.put(`/api/akademik/appeals/${appeal.id}`, { decision, resolution_notes: notes });
-    toast.success('Keputusan evaluasi ulang disimpan');
+    try {
+      await api.put(`/api/akademik/appeals/${appeal.id}`, { decision, resolution_notes: notes });
+      toast.success('Keputusan evaluasi ulang disimpan');
+    } catch {
+      toast.error('Gagal memproses appeal. Silakan coba lagi.');
+    }
     load();
   };
 
@@ -31,7 +45,9 @@ export default function AppealsPage() {
     <div>
       <PageHeader title="Evaluasi Ulang" description="Tinjau permohonan mahasiswa atas hasil konversi yang telah diputuskan." />
       <div className="space-y-4">
-        {rows.length === 0 && <Card>Belum ada permohonan evaluasi ulang.</Card>}
+        {isLoading && <Card><p className="text-center text-gray-400 py-8">Memuat data...</p></Card>}
+        {isError && <Card><p className="text-center text-red-400 py-8">Gagal memuat data. Silakan refresh halaman.</p></Card>}
+        {!isLoading && !isError && rows.length === 0 && <Card>Belum ada permohonan evaluasi ulang.</Card>}
         {rows.map((appeal) => (
           <Card key={appeal.id}>
             <div className="flex flex-col justify-between gap-4 md:flex-row">

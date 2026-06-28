@@ -357,7 +357,7 @@ export default function ProdiManagementPage() {
               type="number"
               placeholder="Contoh: 70" 
               value={settingsFormData.max_konversi_sks_persen}
-              onChange={(e) => setSettingsFormData({...settingsFormData, max_konversi_sks_persen: parseInt(e.target.value)})}
+              onChange={(e) => setSettingsFormData({...settingsFormData, max_konversi_sks_persen: parseInt(e.target.value) || 0})}
             />
           </div>
           <Input 

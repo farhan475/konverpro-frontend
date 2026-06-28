@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
+import { downloadBlob } from '@/lib/utils/download';
 import { ApiResponse, Pendaftar, Prodi, TranskripAsal } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -310,7 +310,7 @@ export default function DetailAntreanPage() {
                           <Input 
                             type="number"
                             value={item.sks_asal} 
-                            onChange={(e) => updateTranskripField(i, 'sks_asal', parseInt(e.target.value))}
+                            onChange={(e) => updateTranskripField(i, 'sks_asal', parseInt(e.target.value) || 0)}
                             className="text-sm text-center"
                           />
                         </td>
@@ -345,7 +345,7 @@ export default function DetailAntreanPage() {
         {/* Sidebar Actions */}
         <div className="space-y-6">
           <Card className={cn(
-            "text-white border-none shadow-xl transition-all duration-300",
+            "text-white border-none shadow-sm transition-all duration-300",
             isEditing ? "bg-gray-400 opacity-50 grayscale" : "bg-blue-900 shadow-blue-900/20"
           )}>
             <h3 className="text-lg font-bold mb-4">Aksi Akademik</h3>
@@ -411,7 +411,7 @@ export default function DetailAntreanPage() {
                 className="w-full justify-start text-xs font-bold bg-white"
                 onClick={async () => {
                   try {
-                    await downloadPrivateFile(`/api/files/excel/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
+                    await downloadBlob(`/api/files/excel/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.xlsx`);
                   } catch {
                     toast.error('Gagal mengunduh file Excel');
                   }
@@ -425,7 +425,7 @@ export default function DetailAntreanPage() {
                   className="w-full justify-start text-xs font-bold bg-white"
                   onClick={async () => {
                     try {
-                      await downloadPrivateFile(`/api/files/pdf/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
+                      await downloadBlob(`/api/files/pdf/${pendaftar.id}`, `Transkrip_${pendaftar.nama_lengkap}.pdf`);
                     } catch {
                       toast.error('Gagal mengunduh file PDF');
                     }

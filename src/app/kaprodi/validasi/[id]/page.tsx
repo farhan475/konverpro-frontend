@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import api from '@/lib/api';
-import { downloadPrivateFile } from '@/lib/download';
+import { downloadBlob } from '@/lib/utils/download';
 import { ApiResponse, HasilKonversi, KurikulumMk, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -52,7 +52,7 @@ export default function DetailValidasiPage() {
         api.get<ApiResponse<Pendaftar>>(`/api/kaprodi/validasi/${id}`),
         api.get<ApiResponse<KurikulumMk[]>>('/api/akademik/kurikulum') // Kaprodi can see kurikulum
       ]);
-      
+
       if (detailRes.data.success) setPendaftar(detailRes.data.data);
       if (kurikulumRes.data.success) setKurikulum(kurikulumRes.data.data);
     } catch {
@@ -130,7 +130,7 @@ export default function DetailValidasiPage() {
   const handleDownloadBa = async () => {
     if (!pendaftar) return;
     try {
-      await downloadPrivateFile(
+      await downloadBlob(
         `/api/kaprodi/validasi/${id}/download-ba`,
         `Berita_Acara_${pendaftar.nim_asal || pendaftar.nama_lengkap}.pdf`,
       );

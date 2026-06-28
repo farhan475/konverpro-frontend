@@ -39,7 +39,7 @@ export default function SuperadminLayout({
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <div className="h-16 bg-blue-900 w-full animate-pulse" />
         <div className="flex-1 p-8">
-          <Skeleton className="h-48 w-full rounded-3xl mb-8" />
+          <Skeleton className="h-48 w-full rounded-2xl mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-32 rounded-2xl" />

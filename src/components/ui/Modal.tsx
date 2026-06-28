@@ -44,7 +44,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'md' }:
       
       {/* Content */}
       <div className={cn(
-        "relative w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200",
+        "relative w-full bg-white rounded-2xl shadow-sm overflow-hidden animate-in zoom-in-95 duration-200",
         sizes[size]
       )}>
         {/* Header */}

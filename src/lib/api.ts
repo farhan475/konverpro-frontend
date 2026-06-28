@@ -31,7 +31,8 @@ api.interceptors.response.use((response) => {
       const isLoginAttempt = requestUrl.includes('/api/auth/login');
 
       if (!isLoginPage && !isLoginAttempt) {
-        window.location.href = '/';
+        // Note: do NOT hard-redirect here — useAuthGuard handles 401 by showing toast + soft redirect.
+        // Hard redirect would tear down React tree before toast can render.
       }
     }
   }
