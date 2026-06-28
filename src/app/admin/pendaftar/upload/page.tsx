@@ -79,7 +79,6 @@ export default function UploadPendaftarPage() {
 
   const handleDownloadTemplate = async () => {
     setIsDownloadingTemplate(true);
-
     try {
       await downloadBlob('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
     } catch {

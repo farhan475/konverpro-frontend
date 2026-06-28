@@ -152,7 +152,6 @@ export default function ListPendaftarPage() {
           </table>
         </div>
 
-        {/* Pagination placeholder */}
         {meta && meta.last_page > 1 && (
           <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
             <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">

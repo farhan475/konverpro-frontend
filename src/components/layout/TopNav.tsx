@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  SignOut, 
+import {
+  SignOut,
   ShieldCheck
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
@@ -80,7 +80,7 @@ export const TopNav = ({ role, navItems }: TopNavProps) => {
 
           <NotificationCenter />
 
-          <button 
+          <button
             onClick={handleLogout}
             className="w-10 h-10 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition flex items-center justify-center"
             title="Keluar"

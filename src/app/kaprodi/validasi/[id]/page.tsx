@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  ArrowLeft, 
-  Table, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  ArrowLeft,
+  Table,
+  CheckCircle,
+  XCircle,
+  Clock,
   Warning,
   Info,
   ArrowRight,
@@ -33,14 +33,14 @@ export default function DetailValidasiPage() {
   const [pendaftar, setPendaftar] = useState<Pendaftar | null>(null);
   const [kurikulum, setKurikulum] = useState<KurikulumMk[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Action state
   const [isApproving, setIsApproving] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [isSendingBa, setIsSendingBa] = useState(false);
   const [catatan, setCatatan] = useState('');
-  
+
   // Modal states
   const [isRevisiModalOpen, setIsRevisiModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -50,7 +50,7 @@ export default function DetailValidasiPage() {
     try {
       const [detailRes, kurikulumRes] = await Promise.all([
         api.get<ApiResponse<Pendaftar>>(`/api/kaprodi/validasi/${id}`),
-        api.get<ApiResponse<KurikulumMk[]>>('/api/akademik/kurikulum') // Kaprodi can see kurikulum
+        api.get<ApiResponse<KurikulumMk[]>>('/api/akademik/kurikulum')
       ]);
 
       if (detailRes.data.success) setPendaftar(detailRes.data.data);
@@ -72,7 +72,7 @@ export default function DetailValidasiPage() {
       const { data } = await api.put(`/api/kaprodi/validasi/${hasilId}`, payload);
       if (data.success) {
         toast.success('Berhasil memperbarui pemetaan');
-        fetchDetail(); // Refresh data
+        fetchDetail();
       }
     } catch {
       toast.error('Gagal memperbarui pemetaan');
@@ -189,8 +189,8 @@ export default function DetailValidasiPage() {
 
   return (
     <div>
-      <PageHeader 
-        title="Detail Validasi Konversi" 
+      <PageHeader
+        title="Detail Validasi Konversi"
         description="Review hasil pemetaan otomatis dan berikan keputusan akhir permohonan konversi."
       >
         <Button variant="secondary" onClick={() => router.back()} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
@@ -200,7 +200,6 @@ export default function DetailValidasiPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 space-y-8">
-          {/* Info Mahasiswa */}
           <Card>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-5">
@@ -253,7 +252,6 @@ export default function DetailValidasiPage() {
             </div>
           </Card>
 
-          {/* Tabel Konversi */}
           <Card>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -261,7 +259,7 @@ export default function DetailValidasiPage() {
                 Matriks Pemetaan Mata Kuliah
               </h3>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
@@ -312,7 +310,7 @@ export default function DetailValidasiPage() {
                         </div>
                       </td>
                       <td className="py-4 px-3 text-right">
-                        <select 
+                        <select
                           className="px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-bold outline-none focus:ring-2 focus:ring-blue-700/10 opacity-0 group-hover:opacity-100 transition-opacity"
                           onChange={(e) => handleUpdateHasil(item.id, { id_mk_tujuan: e.target.value })}
                           value={item.id_mk_tujuan || ''}
@@ -331,7 +329,6 @@ export default function DetailValidasiPage() {
           </Card>
         </div>
 
-        {/* Sidebar Actions */}
         <div className="space-y-6">
           <Card className="bg-white border-blue-900/10">
             <h3 className="text-lg font-bold text-gray-900 mb-6">Keputusan Kaprodi</h3>
@@ -364,7 +361,7 @@ export default function DetailValidasiPage() {
                 </>
               ) : (
                 <>
-                  <Button 
+                  <Button
                     className="w-full py-4 bg-green text-white hover:bg-green/90 shadow-lg shadow-green/20"
                     onClick={handleApprove}
                     isLoading={isApproving}
@@ -372,16 +369,16 @@ export default function DetailValidasiPage() {
                   >
                     <CheckCircle size={20} weight="bold" /> Setujui Konversi
                   </Button>
-                  <Button 
-                    variant="secondary" 
+                  <Button
+                    variant="secondary"
                     className="w-full py-4 border-orange/50 text-orange hover:bg-orange/5"
                     onClick={() => setIsRevisiModalOpen(true)}
                     disabled={pendaftar.status !== 'Pending Kaprodi'}
                   >
                     <Clock size={20} weight="bold" /> Minta Revisi
                   </Button>
-                  <Button 
-                    variant="danger" 
+                  <Button
+                    variant="danger"
                     className="w-full py-4"
                     onClick={() => setIsRejectModalOpen(true)}
                     disabled={pendaftar.status !== 'Pending Kaprodi'}
@@ -415,7 +412,6 @@ export default function DetailValidasiPage() {
         </div>
       </div>
 
-      {/* Revisi Modal */}
       <Modal
         isOpen={isRevisiModalOpen}
         onClose={() => setIsRevisiModalOpen(false)}
@@ -429,7 +425,7 @@ export default function DetailValidasiPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600 font-medium">Jelaskan bagian mana yang perlu diperbaiki oleh Admin atau Akademik:</p>
-          <textarea 
+          <textarea
             className="w-full p-4 border border-gray-200 rounded-2xl bg-gray-50 focus:outline-none focus:ring-4 focus:ring-orange/10 focus:border-orange min-h-[150px] text-sm"
             placeholder="Contoh: Lampiran transkrip PDF tidak terbaca, silakan upload ulang."
             value={catatan}
@@ -438,7 +434,6 @@ export default function DetailValidasiPage() {
         </div>
       </Modal>
 
-      {/* Reject Modal */}
       <Modal
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
@@ -456,7 +451,7 @@ export default function DetailValidasiPage() {
             <p className="text-xs font-bold leading-relaxed uppercase tracking-tight">Tindakan ini tidak dapat dibatalkan. Mahasiswa akan menerima notifikasi penolakan.</p>
           </div>
           <p className="text-sm text-gray-600 font-medium">Alasan Penolakan:</p>
-          <textarea 
+          <textarea
             className="w-full p-4 border border-gray-200 rounded-2xl bg-gray-50 focus:outline-none focus:ring-4 focus:ring-red/10 focus:border-red min-h-[150px] text-sm"
             placeholder="Contoh: Mahasiswa tidak memenuhi syarat minimum IPK atau SKS asal."
             value={catatan}

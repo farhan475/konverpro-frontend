@@ -6,6 +6,8 @@ import {
   User,
   Table,
   CheckCircle,
+  Clock,
+  XCircle,
   FileXls,
   FilePdf,
   Info,
@@ -17,8 +19,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { getStatusVariant } from '@/lib/utils/status';
-import { downloadBlob } from '@/lib/utils/download';
 import api from '@/lib/api';
+import { downloadBlob } from '@/lib/utils/download';
 import { ApiResponse, HasilKonversi, Pendaftar } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -68,7 +70,6 @@ export default function AdminDetailPendaftarPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Status Timeline / Card */}
           <Card className={cn(
             "border-l-8",
             pendaftar.status === 'Approved' ? "border-green" :
@@ -104,7 +105,6 @@ export default function AdminDetailPendaftarPage() {
             )}
           </Card>
 
-          {/* Profil Mahasiswa */}
           <Card>
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
               <User size={20} weight="bold" className="text-blue-900" />
@@ -142,7 +142,6 @@ export default function AdminDetailPendaftarPage() {
             </div>
           </Card>
 
-          {/* Tabel Hasil Konversi (Hanya muncul jika sudah diproses) */}
           {pendaftar.hasil_konversi && pendaftar.hasil_konversi.length > 0 && (
             <Card>
               <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">

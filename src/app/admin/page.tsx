@@ -15,12 +15,14 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { DataTable } from "@/components/shared/DataTable";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { cn } from "@/lib/utils";
+import { getStatusVariant } from "@/lib/utils/status";
+import { downloadBlob } from "@/lib/utils/download";
 import Link from "next/link";
 import api from "@/lib/api";
-import { downloadBlob } from "@/lib/utils/download";
 import { AdminDashboardData, ApiResponse, Pendaftar } from "@/lib/types";
 import { toast } from "sonner";
-import { getStatusVariant } from "@/lib/utils/status";
 
 export default function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardData | null>(null);
@@ -166,13 +168,7 @@ export default function AdminDashboard() {
             <Button
               variant="secondary"
               className="w-full border-yellow/50 text-blue-900 hover:bg-yellow/10 mt-8"
-              onClick={async () => {
-                try {
-                  await downloadBlob('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx');
-                } catch {
-                  toast.error('Gagal mengunduh template.');
-                }
-              }}
+              onClick={() => downloadBlob('/api/admin/template-excel', 'Template_Konversi_UNSIA.xlsx')}
             >
               Unduh Template Excel
             </Button>
